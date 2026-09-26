@@ -17,6 +17,89 @@ An autonomous research and intelligence agent powered by LangChain's **`deepagen
 
 ---
 
+## 🏗️ Architecture & End-to-End Workflow
+
+```mermaid
+flowchart TD
+    %% INGRESS & TRIGGERS
+    subgraph S1["1. Triggers & Ingress"]
+        T_CLI["CLI Interface\n(python -m agent.cli research / digest)"]
+        T_API["FastAPI REST Server\n(POST /api/research | /api/digest)"]
+        T_CRON["GitHub Actions Cron\n(Daily at 08:00 UTC)"]
+    end
+
+    %% CONFIGURATION & MODEL RESOLUTION
+    subgraph S2["2. Configuration & Model Factory"]
+        CONFIG["Settings (agent.config)\nLoads .env & API Keys"]
+        LLM["LLM Factory (agent.llm)\nOpenRouter | Gemini | OpenAI | Anthropic"]
+    end
+
+    %% ORCHESTRATION & SCOUTS
+    subgraph S3["3. DeepAgents Multi-Subagent Harness"]
+        ORCH["Lead Research Agent (agent.core.orchestrator)\n- Built via deepagents.create_deep_agent\n- Planning (todo tool) & Workspace Memory"]
+        
+        SCOUT_NEWS["News & Web Scout Subagent\n(agent.core.scouts)\nIsolated Context"]
+        SCOUT_PAPER["Academic Paper Scout Subagent\n(agent.core.scouts)\nIsolated Context"]
+    end
+
+    %% SOURCE TOOLS & CONNECTORS
+    subgraph S4["4. Information Retrieval Tools (agent.tools)"]
+        TOOL_TAVILY["search_web\nTavily API (Fallback: DuckDuckGo)"]
+        TOOL_RSS["fetch_ai_rss\nOpenAI, Google DeepMind, Anthropic, HF"]
+        TOOL_ARXIV["query_arxiv\narXiv API (cs.AI, cs.LG, cs.CL)"]
+        TOOL_HF["query_hf_papers\nHugging Face Daily Papers API"]
+    end
+
+    %% SYNTHESIS & STORAGE
+    subgraph S5["5. Synthesis & Persistence"]
+        SYNTH["Report Synthesizer (agent.core.synthesizer)\n- ResearchReport Pydantic Schema\n- normalize_to_report_markdown"]
+        REPORTS["Raw Markdown Archive\nreports/YYYY-MM-DD-*.md"]
+    end
+
+    %% WEB PUBLISHING & DEPLOYMENT
+    subgraph S6["6. Web Publishing & Distribution"]
+        PUB["Publisher (agent.publishers.mkdocs_publisher)\n- Sync to site_docs/digests/ or research/\n- rebuild_site_index updates site_docs/index.md"]
+        MKDOCS["Material for MkDocs Engine\n(mkdocs.yml)"]
+        GH_PAGES["GitHub Pages\n(Searchable Live Website)"]
+        LOCAL_SERVE["Local Web Preview\n(http://127.0.0.1:8000)"]
+    end
+
+    %% CONNECTIONS
+    T_CLI --> CONFIG
+    T_API --> CONFIG
+    T_CRON --> CONFIG
+    
+    CONFIG --> LLM
+    LLM --> ORCH
+
+    ORCH -->|"1. Plan task strategy"| ORCH
+    ORCH -->|"2. Delegate industry & web search"| SCOUT_NEWS
+    ORCH -->|"3. Delegate papers & technical specs"| SCOUT_PAPER
+
+    SCOUT_NEWS --> TOOL_TAVILY
+    SCOUT_NEWS --> TOOL_RSS
+    SCOUT_PAPER --> TOOL_ARXIV
+    SCOUT_PAPER --> TOOL_HF
+
+    TOOL_TAVILY --> SCOUT_NEWS
+    TOOL_RSS --> SCOUT_NEWS
+    TOOL_ARXIV --> SCOUT_PAPER
+    TOOL_HF --> SCOUT_PAPER
+
+    SCOUT_NEWS -->|"Return news extracts"| ORCH
+    SCOUT_PAPER -->|"Return paper summaries"| ORCH
+
+    ORCH -->|"Synthesize structured findings"| SYNTH
+    SYNTH --> REPORTS
+
+    REPORTS -->|"If publish enabled"| PUB
+    PUB --> MKDOCS
+    MKDOCS --> GH_PAGES
+    MKDOCS --> LOCAL_SERVE
+```
+
+---
+
 ## 🛠️ Prerequisites & Installation
 
 Python 3.11 or higher is required.
