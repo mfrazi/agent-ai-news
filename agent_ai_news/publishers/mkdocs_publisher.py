@@ -1,19 +1,31 @@
-"""MkDocs Material web publishing and archive indexer."""
+"""MkDocs Material archive indexer."""
 
-import os
+import html
+import json
 import re
-import shutil
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 from agent_ai_news.config import get_settings
+from agent_ai_news.core.synthesizer import REPORT_SUBFOLDERS
+
+
+def _unquote(val: str) -> str:
+    """Strip YAML-style quotes, decoding escapes in double-quoted strings."""
+    if len(val) >= 2 and val[0] == val[-1] == '"':
+        try:
+            return json.loads(val)
+        except ValueError:
+            return val[1:-1]
+    if len(val) >= 2 and val[0] == val[-1] == "'":
+        return val[1:-1].replace("''", "'")
+    return val
 
 
 def parse_frontmatter(file_path: Path) -> Dict[str, str]:
-    """Extract frontmatter title, date, and type from a markdown report."""
+    """Extract frontmatter title and date from a markdown report."""
     content = file_path.read_text(encoding="utf-8")
     title = file_path.stem
     date = "Unknown Date"
-    report_type = "research"
 
     if content.startswith("---"):
         parts = content.split("---", 2)
@@ -23,29 +35,19 @@ def parse_frontmatter(file_path: Path) -> Dict[str, str]:
                 if ":" in line:
                     key, val = line.split(":", 1)
                     key = key.strip().lower()
-                    val = val.strip().strip('"').strip("'")
+                    val = _unquote(val.strip())
                     if key == "title" and val:
                         title = val
                     elif key == "date" and val:
                         date = val
-                    elif key == "type" and val:
-                        report_type = val
 
-    return {"title": title, "date": date, "type": report_type}
+    return {"title": title, "date": date}
 
 
-def publish_to_site(report_path: Path, report_type: str = "research") -> Path:
-    """Copy a generated report from reports/ into the appropriate site_docs subfolder."""
-    settings = get_settings()
-    site_docs_root = Path(settings.site_docs_dir)
-
-    target_subdir = "digests" if report_type == "digest" else "research"
-    dest_dir = site_docs_root / target_subdir
-    dest_dir.mkdir(parents=True, exist_ok=True)
-
-    dest_file = dest_dir / report_path.name
-    shutil.copy2(report_path, dest_file)
-    return dest_file
+def _table_cell(text: str) -> str:
+    """Escape a title for a markdown table link label: HTML, table and link syntax render as plain text."""
+    text = html.escape(text, quote=False)
+    return text.replace("\\", "\\\\").replace("|", "\\|").replace("[", "\\[").replace("]", "\\]")
 
 
 def rebuild_site_index() -> None:
@@ -56,7 +58,7 @@ def rebuild_site_index() -> None:
 
     all_reports: List[Dict[str, str]] = []
 
-    for subfolder in ("digests", "research"):
+    for report_type, subfolder in REPORT_SUBFOLDERS.items():
         folder_path = site_docs_root / subfolder
         if not folder_path.exists():
             continue
@@ -68,7 +70,7 @@ def rebuild_site_index() -> None:
                 {
                     "title": meta["title"],
                     "date": meta["date"],
-                    "type": subfolder[:-1].capitalize(),
+                    "type": report_type.capitalize(),
                     "link": rel_link,
                 }
             )
@@ -79,13 +81,13 @@ def rebuild_site_index() -> None:
     # Build the Markdown table
     if all_reports:
         rows = [
-            f"| {r['date']} | `{r['type']}` | [{r['title']}]({r['link']}) | [Read Report]({r['link']}) |"
+            f"| {_table_cell(r['date'])} | `{r['type']}` | [{_table_cell(r['title'])}]({r['link']}) | [Read Report]({r['link']}) |"
             for r in all_reports
         ]
         table_content = "| Date | Type | Title | Link |\n| :--- | :--- | :--- | :--- |\n" + "\n".join(rows)
     else:
         table_content = (
-            "| Date | Type | Topic / Title | Link |\n"
+            "| Date | Type | Title | Link |\n"
             "| :--- | :--- | :--- | :--- |\n"
             "| *No reports published yet. Run `python -m agent_ai_news.cli digest` to generate your first briefing.* | - | - | - |"
         )
@@ -95,10 +97,12 @@ def rebuild_site_index() -> None:
 
     # Replace table section between '## Latest Briefings & Research Archive' and '## How It Works'
     pattern = r"(## Latest Briefings & Research Archive\s*\n\n)([\s\S]*?)(\n\n---|\n\n## How It Works|$)"
-    replacement = rf"\1{table_content}\3"
 
     if re.search(pattern, existing_content):
-        updated_content = re.sub(pattern, replacement, existing_content)
+        # Callable replacement: report titles may contain backslashes that re.sub would treat as escapes
+        updated_content = re.sub(
+            pattern, lambda m: f"{m.group(1)}{table_content}{m.group(3)}", existing_content, count=1
+        )
     else:
         updated_content = f"""# AI Intelligence Portal
 
@@ -113,7 +117,7 @@ Welcome to the **AI Intelligence Portal**. This knowledge archive is continuousl
 ---
 
 ## How It Works
-1. **Scouts**: News Scout scans breaking web & AI lab RSS feeds; Academic Scout queries arXiv & Hugging Face daily papers.
+1. **Scouts**: News Scout scans breaking web & AI lab RSS feeds; Academic Scout queries Hugging Face daily papers & searches the web for research papers.
 2. **Orchestrator**: Lead DeepAgent plans research steps and synthesizes findings into structured markdown.
 3. **Publisher**: Generates searchable reports and updates this static archive.
 """

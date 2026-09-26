@@ -9,29 +9,36 @@ on:
       days:
         description: "Number of lookback days"
         required: false
-        default: "1"
+        type: number
+        default: 1
       topic:
         description: "Focus topic"
         required: false
+        type: string
         default: "Frontier LLMs, Reasoning Models, Open Weights, Multimodal"
+      model:
+        description: "Model ID override (blank = AGENT_MODEL_NAME variable, then provider default)"
+        required: false
+        type: string
+        default: ""
 
+# Push the new report commit and the gh-pages branch; nothing else
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   digest-and-publish:
     runs-on: ubuntu-latest
 
     steps:
+      # Actions are pinned to commit SHAs; a moved tag cannot swap in code that holds the write token
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.11"
           cache: "pip"
@@ -48,20 +55,26 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
-          AGENT_LLM_PROVIDER: ${{ secrets.AGENT_LLM_PROVIDER || 'openrouter' }}
+          # Empty auto-detects the provider from whichever API key secret is set
+          AGENT_LLM_PROVIDER: ${{ secrets.AGENT_LLM_PROVIDER || '' }}
+          # Manual-run input, then the repository variable; empty uses the provider's default model
+          AGENT_MODEL_NAME: ${{ inputs.model || vars.AGENT_MODEL_NAME || '' }}
+          # Inputs go through env vars, never ${{ }} inside the script, so they cannot inject shell code
+          DIGEST_DAYS: ${{ inputs.days || 1 }}
+          DIGEST_TOPIC: ${{ inputs.topic || 'Frontier LLMs, Reasoning Models, Open Weights, Multimodal' }}
         run: |
-          python -m agent_ai_news.cli digest --days ${{ github.event.inputs.days || '1' }} --topic "${{ github.event.inputs.topic || 'Frontier LLMs, Reasoning, Open Weights' }}" --publish
+          python -m agent_ai_news.cli digest --days "$DIGEST_DAYS" --topic "$DIGEST_TOPIC"
 
       - name: Commit New Reports to Repository
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action AI Researcher"
-          git add reports/ site_docs/
+          git add site_docs/
           if git diff --staged --quiet; then
             echo "No new reports generated to commit."
           else
             git commit -m "chore(briefing): automated AI briefing and archive update [skip ci]"
-            git push origin ${{ github.ref_name }}
+            git push origin "HEAD:$GITHUB_REF_NAME"
           fi
 
       - name: Build MkDocs Static Website
@@ -69,7 +82,7 @@ jobs:
           mkdocs build
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site

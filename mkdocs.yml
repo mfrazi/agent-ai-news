@@ -39,10 +39,10 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - tables
-  - meta
 
-extra_css:
-  - stylesheets/extra.css
+# Sanitizes every rendered page: reports are LLM output built from untrusted web content
+hooks:
+  - agent_ai_news/publishers/mkdocs_hooks.py
 
 nav:
   - Home: index.md

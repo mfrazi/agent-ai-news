@@ -1,11 +1,20 @@
 """Web search tool with Tavily and DuckDuckGo fallback."""
 
-import os
 import logging
-from typing import Optional
 from agent_ai_news.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+
+def _time_range(days: int) -> str:
+    """Map a lookback window in days to the coarse Tavily time_range buckets."""
+    if days <= 1:
+        return "day"
+    if days <= 7:
+        return "week"
+    if days <= 31:
+        return "month"
+    return "year"
 
 
 def search_web(query: str, days: int = 7, max_results: int = 5) -> str:
@@ -13,8 +22,7 @@ def search_web(query: str, days: int = 7, max_results: int = 5) -> str:
 
     Uses Tavily Search API if TAVILY_API_KEY is available; falls back to DuckDuckGo search.
     """
-    settings = get_settings()
-    tavily_key = settings.tavily_api_key or os.environ.get("TAVILY_API_KEY")
+    tavily_key = get_settings().tavily_api_key
 
     if tavily_key:
         try:
@@ -25,6 +33,7 @@ def search_web(query: str, days: int = 7, max_results: int = 5) -> str:
                 query=query,
                 search_depth="advanced",
                 max_results=max_results,
+                time_range=_time_range(days),
                 include_answer=False,
             )
             results = response.get("results", [])
@@ -41,10 +50,10 @@ def search_web(query: str, days: int = 7, max_results: int = 5) -> str:
 
     # Fallback: DuckDuckGo Search
     try:
-        from duckduckgo_search import DDGS
+        from ddgs import DDGS
 
-        ddgs = DDGS()
-        results = list(ddgs.text(query, max_results=max_results))
+        # DuckDuckGo timelimit takes the first letter of the bucket: d / w / m / y
+        results = DDGS().text(query, timelimit=_time_range(days)[0], max_results=max_results)
         if not results:
             return f"No web search results found for query: '{query}'."
 

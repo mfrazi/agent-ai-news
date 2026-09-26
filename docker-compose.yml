@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   agent-api:
     build:
@@ -11,6 +9,5 @@ services:
     env_file:
       - .env
     volumes:
-      - ./reports:/app/reports
       - ./site_docs:/app/site_docs
     restart: unless-stopped

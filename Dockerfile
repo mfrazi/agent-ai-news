@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for agent-ai-news
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
@@ -24,14 +24,16 @@ COPY mkdocs.yml .
 COPY site_docs/ site_docs/
 COPY pyproject.toml .
 
-# Install project editable without reinstalling deps
-RUN pip install --no-deps -e .
+# Install project editable without reinstalling deps, then drop root: the server only needs
+# to write reports into site_docs/ (uid 1000 matches the usual host owner of the bind mount)
+RUN pip install --no-deps -e . \
+    && useradd --create-home --uid 1000 app \
+    && chown -R app:app /app
+USER app
 
 EXPOSE 8000
 
 ENV PYTHONUNBUFFERED=1
-ENV REPORTS_DIR=reports
-ENV SITE_DOCS_DIR=site_docs
 
 # Default command: run FastAPI server
 CMD ["uvicorn", "agent_ai_news.server:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 def test_readme_contains_deployment_guides():
-    readme_path = Path("README.md")
+    readme_path = Path(__file__).resolve().parent.parent / "README.md"  # independent of the working directory
     assert readme_path.exists()
     content = readme_path.read_text(encoding="utf-8")
     assert "Deployment" in content
