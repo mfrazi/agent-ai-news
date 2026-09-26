@@ -63,3 +63,22 @@ def test_mkdocs_config_registers_hook():
     mkdocs_yml = Path(__file__).resolve().parent.parent / "mkdocs.yml"  # independent of the working directory
     config = yaml.safe_load(mkdocs_yml.read_text(encoding="utf-8"))
     assert "agent_ai_news/publishers/mkdocs_hooks.py" in config["hooks"]
+
+
+def test_site_builds_strict(tmp_path):
+    """The real site builds without warnings (e.g. nav entries pointing at missing pages)."""
+    import subprocess
+    import sys
+    import pytest
+    from pathlib import Path
+
+    pytest.importorskip("mkdocs")
+    project_root = Path(__file__).resolve().parent.parent
+    result = subprocess.run(
+        [sys.executable, "-m", "mkdocs", "build", "--strict", "--site-dir", str(tmp_path / "site")],
+        cwd=project_root,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr[-2000:]
+    assert (tmp_path / "site" / "index.html").exists()

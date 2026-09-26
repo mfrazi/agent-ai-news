@@ -1,5 +1,5 @@
 site_name: AI Intelligence Briefings
-site_description: Autonomous AI research and daily intelligence archive powered by deepagents
+site_description: Autonomous AI research and weekly intelligence archive powered by deepagents
 site_author: DeepAgents AI Researcher
 docs_dir: site_docs
 
@@ -43,8 +43,3 @@ markdown_extensions:
 # Sanitizes every rendered page: reports are LLM output built from untrusted web content
 hooks:
   - agent_ai_news/publishers/mkdocs_hooks.py
-
-nav:
-  - Home: index.md
-  - Daily Briefings: digests/
-  - Research Deep Dives: research/

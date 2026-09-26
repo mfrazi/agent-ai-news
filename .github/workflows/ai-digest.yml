@@ -1,16 +1,16 @@
-name: Daily AI Intelligence Briefing & Site Publish
+name: Weekly AI Intelligence Briefing & Site Publish
 
 on:
   schedule:
-    # Run every day at 08:00 UTC
-    - cron: "0 8 * * *"
+    # Every Sunday at 08:00 UTC+7; GitHub cron runs in UTC, so 01:00 UTC on Sunday
+    - cron: "0 1 * * 0"
   workflow_dispatch:
     inputs:
       days:
-        description: "Number of lookback days"
+        description: "Number of lookback days (7 = the weekly digest)"
         required: false
         type: number
-        default: 1
+        default: 7
       topic:
         description: "Focus topic"
         required: false
@@ -22,7 +22,7 @@ on:
         type: string
         default: ""
 
-# Push the new report commit and the gh-pages branch; nothing else
+# Push the new report commit; the deploy-site job gets its own Pages permissions
 permissions:
   contents: write
 
@@ -42,11 +42,13 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
+          # the default key file is requirements.txt, which this project does not have
+          cache-dependency-path: pyproject.toml
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[web]
+          pip install .
 
       - name: Generate AI Digest & Update Site Index
         env:
@@ -60,7 +62,8 @@ jobs:
           # Manual-run input, then the repository variable; empty uses the provider's default model
           AGENT_MODEL_NAME: ${{ inputs.model || vars.AGENT_MODEL_NAME || '' }}
           # Inputs go through env vars, never ${{ }} inside the script, so they cannot inject shell code
-          DIGEST_DAYS: ${{ inputs.days || 1 }}
+          # Scheduled runs have no inputs, so they fall back to the weekly window
+          DIGEST_DAYS: ${{ inputs.days || 7 }}
           DIGEST_TOPIC: ${{ inputs.topic || 'Frontier LLMs, Reasoning Models, Open Weights, Multimodal' }}
         run: |
           python -m agent_ai_news.cli digest --days "$DIGEST_DAYS" --topic "$DIGEST_TOPIC"
@@ -77,12 +80,11 @@ jobs:
             git push origin "HEAD:$GITHUB_REF_NAME"
           fi
 
-      - name: Build MkDocs Static Website
-        run: |
-          mkdocs build
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
+  # Commits pushed with GITHUB_TOKEN do not trigger other workflows, so call the deployment directly
+  deploy-site:
+    needs: digest-and-publish
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-site.yml

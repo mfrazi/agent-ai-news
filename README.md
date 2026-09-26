@@ -13,7 +13,7 @@ An autonomous research and intelligence agent powered by LangChain's **`deepagen
 * **Provider-Agnostic LLM Engine:** Supports **OpenRouter**, **Google Gemini**, **OpenAI**, and **Anthropic** with auto-detection.
 * **Material for MkDocs Publishing:** Automatically converts briefings into a searchable, mobile-ready static website with dark mode. Every page is sanitized at build time, so HTML or scripts picked up from the web can never run on the published site.
 * **Dual Interface:** Typer CLI for local interactive usage and FastAPI REST API for remote integration.
-* **Automated CI/CD:** Ready for zero-cost daily briefings on GitHub Actions and static site hosting on GitHub Pages.
+* **Automated CI/CD:** Ready for zero-cost weekly briefings on GitHub Actions and static site hosting on GitHub Pages.
 
 ---
 
@@ -25,7 +25,7 @@ flowchart TD
     subgraph S1["1. Triggers & Ingress"]
         T_CLI["CLI Interface\n(python -m agent_ai_news.cli research / digest)"]
         T_API["FastAPI REST Server\n(POST /api/research | /api/digest)"]
-        T_CRON["GitHub Actions Cron\n(Daily at 08:00 UTC)"]
+        T_CRON["GitHub Actions Cron\n(Weekly: Sunday 08:00 UTC+7)"]
     end
 
     %% CONFIGURATION & MODEL RESOLUTION
@@ -226,7 +226,7 @@ Interactive Swagger documentation is available at `http://localhost:8000/docs` (
 You can deploy and host this agent using three primary methods:
 
 ### Option A: Zero-Cost Automated Scheduled Briefings (GitHub Actions + GitHub Pages)
-This repository includes `.github/workflows/ai-digest.yml`, which runs completely free on GitHub's infrastructure:
+This repository includes two workflows that run completely free on GitHub's infrastructure: `.github/workflows/ai-digest.yml` generates the weekly briefing, and `.github/workflows/deploy-site.yml` builds `site_docs/` with MkDocs and publishes it to GitHub Pages:
 
 1. Push your repository to GitHub.
 2. In your GitHub repository, go to **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions**.
@@ -234,8 +234,9 @@ This repository includes `.github/workflows/ai-digest.yml`, which runs completel
    - `OPENROUTER_API_KEY` (or `GOOGLE_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`)
    - `TAVILY_API_KEY` (optional)
    - `AGENT_LLM_PROVIDER` (optional; if unset, the provider is auto-detected from the API key secret)
-4. Go to **Settings** $\rightarrow$ **Pages** and set **Source** to `Deploy from a branch` (branch: `gh-pages` / root).
-5. The workflow automatically executes every morning at `08:00 UTC`, generates the new briefing, commits it to the repository, and publishes the static website to **GitHub Pages**. You can also trigger it manually from the **Actions** tab.
+4. Go to **Settings** $\rightarrow$ **Pages** $\rightarrow$ **Build and deployment** and set **Source** to **GitHub Actions**. (With `Deploy from a branch`, GitHub renders this README instead of the site.)
+5. The digest workflow runs every Sunday at `08:00 UTC+7` (`01:00 UTC`; GitHub schedules use UTC): it generates a briefing covering the past 7 days, commits it to the repository, and then deploys the site to **GitHub Pages**. You can also trigger it manually from the **Actions** tab, where `days` defaults to 7.
+6. The site is also redeployed whenever a push to `main` changes `site_docs/` or `mkdocs.yml` (for example, reports you generate locally and push), or when you run **Deploy Site to GitHub Pages** manually from the **Actions** tab.
 
 #### Choosing the LLM Model (`AGENT_MODEL_NAME`)
 The workflow reads the model from the `AGENT_MODEL_NAME` repository variable. If the variable is not set, it defaults to empty and digests use the provider's default model (`anthropic/claude-sonnet-5` on OpenRouter). To use another model:
@@ -245,7 +246,7 @@ The workflow reads the model from the `AGENT_MODEL_NAME` repository variable. If
    - Value: a model ID for your provider, e.g. `deepseek/deepseek-v4.1-flash` (OpenRouter IDs use the `vendor/model` form)
 
    It is a variable rather than a secret: the model name is not sensitive, and secrets are masked as `***` in the logs.
-2. *(Optional)* To use a different model for a single manual run, go to **Actions** $\rightarrow$ **Daily AI Intelligence Briefing & Site Publish** $\rightarrow$ **Run workflow** and fill in the **model** field. Leave it blank to use the variable.
+2. *(Optional)* To use a different model for a single manual run, go to **Actions** $\rightarrow$ **Weekly AI Intelligence Briefing & Site Publish** $\rightarrow$ **Run workflow** and fill in the **model** field. Leave it blank to use the variable.
 
 The model is resolved in this order: `model` input $\rightarrow$ `AGENT_MODEL_NAME` variable $\rightarrow$ provider default. The model ID must match the provider in use: the `AGENT_LLM_PROVIDER` secret, or the provider auto-detected from your API key secret.
 
