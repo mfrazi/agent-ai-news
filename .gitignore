@@ -1,0 +1,25 @@
+# Environments
+.env
+.venv/
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Agent runtime scratchpad & local artifacts
+.agent_workspace/
+.superpowers/
+
+# MkDocs site output
+site/
