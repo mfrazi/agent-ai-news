@@ -518,3 +518,63 @@ Expected: PASS
 git add Dockerfile docker-compose.yml .github/workflows/ai-digest.yml tests/test_workflow_syntax.py
 git commit -m "ci: add Dockerfile and GitHub Actions cron workflow for daily digest and pages deployment"
 ```
+
+---
+
+### Task 9: Project & Deployment Documentation (`README.md`)
+
+**Files:**
+- Create: `README.md`
+- Test: `tests/test_readme.py`
+
+**Interfaces:**
+- Consumes: Environment configuration, CLI commands, Docker setup, and GitHub Actions cron workflow.
+- Produces: `README.md` containing project overview, setup guide, API key configuration, CLI usage, and step-by-step deployment instructions (Local, Docker, GitHub Actions + GitHub Pages, and Cloud Run / Railway).
+
+- [ ] **Step 1: Write verification test for README**
+
+```python
+# tests/test_readme.py
+from pathlib import Path
+
+def test_readme_contains_deployment_guides():
+    readme_path = Path("README.md")
+    assert readme_path.exists()
+    content = readme_path.read_text()
+    assert "Deployment" in content
+    assert "Docker" in content
+    assert "GitHub Actions" in content
+    assert "GitHub Pages" in content
+    assert "CLI Usage" in content
+    assert "Environment Variables" in content
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `pytest tests/test_readme.py -v`  
+Expected: FAIL with `AssertionError: assert False (readme does not exist)`
+
+- [ ] **Step 3: Implement `README.md`**
+
+Write a clear, beginner-friendly `README.md` with:
+1. Overview & Features.
+2. Prerequisites & Installation (`pip install -e .` or `pip install -e ".[web]"`).
+3. Environment variables guide (`OPENROUTER_API_KEY`, `GOOGLE_API_KEY`, `TAVILY_API_KEY`, etc.).
+4. CLI Commands (`research`, `digest`, `publish --serve`).
+5. How to Deploy:
+   - **Option A: GitHub Actions & GitHub Pages** (zero-maintenance automated daily briefings).
+   - **Option B: Docker / Docker Compose** (running containerized CLI or API server).
+   - **Option C: Cloud Hosting (Google Cloud Run / Railway / Fly.io)** for the FastAPI endpoint.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `pytest tests/test_readme.py -v`  
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add README.md tests/test_readme.py
+git commit -m "docs: add comprehensive README with local setup and deployment guides"
+```
+
