@@ -8,6 +8,10 @@ from agent_ai_news.tools.huggingface import query_hf_papers
 
 def test_web_search_fallback_to_ddg(monkeypatch):
     monkeypatch.delenv("TAVILY_API_KEY", raising=False)
+    monkeypatch.setattr(
+        "agent_ai_news.tools.web_search.get_settings",
+        lambda: type("Dummy", (), {"tavily_api_key": None})(),
+    )
     with patch("duckduckgo_search.DDGS.text") as mock_ddg:
         mock_ddg.return_value = [
             {"title": "AI Release", "href": "https://example.com/ai", "body": "Summary of AI release"}

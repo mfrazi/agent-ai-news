@@ -1,6 +1,6 @@
 """Lead research DeepAgent orchestrator."""
 
-from typing import Any, Optional
+from typing import Any, List, Optional, Union
 from deepagents import create_deep_agent
 from agent_ai_news.llm import get_chat_model
 from agent_ai_news.core.scouts import create_news_scout_subagent, create_paper_scout_subagent
@@ -25,9 +25,20 @@ When addressing a topic or compiling a briefing:
 """
 
 
-def create_lead_research_agent(model: Any = None):
+def create_lead_research_agent(
+    model: Any = None,
+    openrouter_providers: Optional[Union[str, List[str]]] = None,
+    openrouter_allow_fallbacks: Optional[bool] = None,
+):
     """Instantiate the Lead Research Deep Agent with subagent delegation."""
-    llm = model if model is not None else get_chat_model()
+    llm = (
+        model
+        if model is not None
+        else get_chat_model(
+            openrouter_providers=openrouter_providers,
+            openrouter_allow_fallbacks=openrouter_allow_fallbacks,
+        )
+    )
     news_scout = create_news_scout_subagent(llm)
     paper_scout = create_paper_scout_subagent(llm)
 
@@ -39,9 +50,19 @@ def create_lead_research_agent(model: Any = None):
     return agent_graph
 
 
-def run_research_query(query: str, model: Any = None, report_type: str = "research") -> str:
+def run_research_query(
+    query: str,
+    model: Any = None,
+    report_type: str = "research",
+    openrouter_providers: Optional[Union[str, List[str]]] = None,
+    openrouter_allow_fallbacks: Optional[bool] = None,
+) -> str:
     """Execute a research query using the lead agent and return the resulting report content."""
-    agent = create_lead_research_agent(model=model)
+    agent = create_lead_research_agent(
+        model=model,
+        openrouter_providers=openrouter_providers,
+        openrouter_allow_fallbacks=openrouter_allow_fallbacks,
+    )
     result = agent.invoke({"messages": [{"role": "user", "content": query}]})
     messages = result.get("messages", [])
     raw_content = "No report generated."

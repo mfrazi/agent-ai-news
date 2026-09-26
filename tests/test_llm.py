@@ -20,6 +20,44 @@ def test_get_chat_model_openrouter(monkeypatch):
         assert kwargs.get("model") == "anthropic/claude-3.5-sonnet"
         assert "HTTP-Referer" in kwargs.get("default_headers", {})
         assert kwargs.get("api_key") == "sk-or-dummy"
+        assert "extra_body" not in kwargs
+
+
+def test_get_chat_model_openrouter_with_providers_args(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-dummy")
+    with patch("langchain_openai.ChatOpenAI") as mock_chat:
+        model = get_chat_model(
+            provider="openrouter",
+            model_name="meta-llama/llama-3.3-70b-instruct",
+            openrouter_providers=["Together", "DeepInfra"],
+            openrouter_allow_fallbacks=False,
+        )
+        mock_chat.assert_called_once()
+        kwargs = mock_chat.call_args.kwargs
+        assert "extra_body" in kwargs
+        assert kwargs["extra_body"] == {
+            "provider": {
+                "order": ["Together", "DeepInfra"],
+                "allow_fallbacks": False,
+            }
+        }
+
+
+def test_get_chat_model_openrouter_with_providers_env(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-dummy")
+    monkeypatch.setenv("OPENROUTER_PROVIDERS", "Together, DeepInfra")
+    monkeypatch.setenv("OPENROUTER_ALLOW_FALLBACKS", "true")
+    with patch("langchain_openai.ChatOpenAI") as mock_chat:
+        model = get_chat_model(provider="openrouter")
+        mock_chat.assert_called_once()
+        kwargs = mock_chat.call_args.kwargs
+        assert "extra_body" in kwargs
+        assert kwargs["extra_body"] == {
+            "provider": {
+                "order": ["Together", "DeepInfra"],
+                "allow_fallbacks": True,
+            }
+        }
 
 def test_get_chat_model_gemini(monkeypatch):
     monkeypatch.setenv("GOOGLE_API_KEY", "fake-gemini-key")

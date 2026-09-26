@@ -1,7 +1,7 @@
 """Provider-agnostic LLM Factory for agent-ai-news."""
 
 import os
-from typing import Optional
+from typing import List, Optional, Union
 from langchain_core.language_models.chat_models import BaseChatModel
 from agent_ai_news.config import get_settings
 
@@ -10,6 +10,8 @@ def get_chat_model(
     provider: Optional[str] = None,
     model_name: Optional[str] = None,
     temperature: float = 0.2,
+    openrouter_providers: Optional[Union[str, List[str]]] = None,
+    openrouter_allow_fallbacks: Optional[bool] = None,
 ) -> BaseChatModel:
     """Instantiate and return a BaseChatModel according to provider and configuration."""
     settings = get_settings()
@@ -31,6 +33,30 @@ def get_chat_model(
         }
         if api_key:
             kwargs["api_key"] = api_key
+
+        # Resolve OpenRouter provider routing preferences
+        raw_providers = openrouter_providers or settings.openrouter_providers or settings.openrouter_provider
+        provider_order: List[str] = []
+        if isinstance(raw_providers, str):
+            provider_order = [p.strip() for p in raw_providers.split(",") if p.strip()]
+        elif isinstance(raw_providers, list):
+            provider_order = [str(p).strip() for p in raw_providers if str(p).strip()]
+
+        allow_fallbacks = (
+            openrouter_allow_fallbacks
+            if openrouter_allow_fallbacks is not None
+            else settings.openrouter_allow_fallbacks
+        )
+
+        provider_payload = {}
+        if provider_order:
+            provider_payload["order"] = provider_order
+        if allow_fallbacks is not None:
+            provider_payload["allow_fallbacks"] = allow_fallbacks
+
+        if provider_payload:
+            kwargs["extra_body"] = {"provider": provider_payload}
+
         return ChatOpenAI(**kwargs)
 
     elif active_provider in ("gemini", "google_genai", "google"):

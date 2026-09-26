@@ -24,3 +24,11 @@ def test_settings_explicit_provider(monkeypatch):
     monkeypatch.setenv("AGENT_LLM_PROVIDER", "gemini")
     settings = Settings(_env_file=None)
     assert settings.resolve_provider() == "gemini"
+
+
+def test_settings_openrouter_provider_settings(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_PROVIDERS", "Together, DeepInfra")
+    monkeypatch.setenv("OPENROUTER_ALLOW_FALLBACKS", "false")
+    settings = Settings(_env_file=None)
+    assert settings.openrouter_providers == "Together, DeepInfra"
+    assert settings.openrouter_allow_fallbacks is False

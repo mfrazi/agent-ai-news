@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # Provider & Model Settings
     agent_llm_provider: Optional[str] = None
     agent_model_name: Optional[str] = None
+    openrouter_providers: Optional[str] = None
+    openrouter_provider: Optional[str] = None
+    openrouter_allow_fallbacks: Optional[bool] = None
 
     # API Keys
     openrouter_api_key: Optional[str] = None

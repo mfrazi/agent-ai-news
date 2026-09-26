@@ -1,5 +1,6 @@
 """Command line interface for agent-ai-news."""
 
+from typing import Optional
 import subprocess
 import typer
 from rich.console import Console
@@ -18,10 +19,16 @@ console = Console()
 def research(
     query: str = typer.Argument(..., help="Topic or question to research in-depth"),
     publish: bool = typer.Option(True, "--publish/--no-publish", help="Publish report to MkDocs static site"),
+    openrouter_provider: Optional[str] = typer.Option(
+        None,
+        "--openrouter-provider",
+        "--openrouter-providers",
+        help="Preferred OpenRouter inference provider(s), e.g. 'Together,DeepInfra'",
+    ),
 ):
     """Run an ad-hoc research deep dive on an AI topic."""
     console.print(f"[bold cyan]🔍 Starting research on:[/bold cyan] {query}")
-    report_content = run_research_query(query)
+    report_content = run_research_query(query, openrouter_providers=openrouter_provider)
     saved_path = save_report(report_content, slug=query, report_type="research")
     console.print(f"[bold green]✓ Report saved to:[/bold green] {saved_path}")
 
@@ -39,11 +46,17 @@ def digest(
     days: int = typer.Option(1, "--days", "-d", help="Lookback window in days (e.g. 1 for daily, 7 for weekly)"),
     topic: str = typer.Option("General AI, Frontier Models, Open Weights", "--topic", "-t", help="Topics of interest"),
     publish: bool = typer.Option(True, "--publish/--no-publish", help="Publish digest to MkDocs static site"),
+    openrouter_provider: Optional[str] = typer.Option(
+        None,
+        "--openrouter-provider",
+        "--openrouter-providers",
+        help="Preferred OpenRouter inference provider(s), e.g. 'Together,DeepInfra'",
+    ),
 ):
     """Compile an automated AI intelligence briefing across web, lab RSS, arXiv, and Hugging Face."""
     query = f"Compile an AI intelligence digest for the past {days} days covering: {topic}"
     console.print(f"[bold cyan]📰 Compiling {days}-day intelligence briefing...[/bold cyan]")
-    report_content = run_research_query(query)
+    report_content = run_research_query(query, openrouter_providers=openrouter_provider)
     saved_path = save_report(report_content, slug="daily-digest", report_type="digest")
     console.print(f"[bold green]✓ Briefing saved to:[/bold green] {saved_path}")
 

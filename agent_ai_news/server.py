@@ -19,12 +19,14 @@ app = FastAPI(
 class ResearchRequest(BaseModel):
     query: str
     publish: bool = False
+    openrouter_provider: Optional[str] = None
 
 
 class DigestRequest(BaseModel):
     days: int = 1
     topics: List[str] = Field(default_factory=list)
     publish: bool = False
+    openrouter_provider: Optional[str] = None
 
 
 @app.get("/health")
@@ -36,7 +38,7 @@ def health_check():
 @app.post("/api/research")
 def research_endpoint(req: ResearchRequest):
     """Execute on-demand research on an AI topic."""
-    result_content = run_research_query(req.query)
+    result_content = run_research_query(req.query, openrouter_providers=req.openrouter_provider)
     saved_path = save_report(result_content, slug=req.query, report_type="research")
 
     if req.publish:
@@ -55,7 +57,7 @@ def digest_endpoint(req: DigestRequest):
     """Generate a scheduled or on-demand intelligence briefing."""
     topic_str = ", ".join(req.topics) if req.topics else "General AI, LLMs, and Open Source"
     query = f"Compile an AI intelligence digest for the past {req.days} days covering: {topic_str}"
-    result_content = run_research_query(query)
+    result_content = run_research_query(query, openrouter_providers=req.openrouter_provider)
     saved_path = save_report(result_content, slug="daily-digest", report_type="digest")
 
     if req.publish:

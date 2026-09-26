@@ -132,6 +132,8 @@ cp .env.example .env
 | `AGENT_LLM_PROVIDER` | Preferred provider: `openrouter`, `gemini`, `openai`, `anthropic` | `openrouter` (auto-detected) |
 | `AGENT_MODEL_NAME` | Model ID (e.g. `anthropic/claude-3.5-sonnet`, `gemini-2.0-flash`, `gpt-4o`) | Provider default |
 | `OPENROUTER_API_KEY` | OpenRouter API Key (access Claude, DeepSeek, Llama, etc.) | Optional |
+| `OPENROUTER_PROVIDERS` | Preferred OpenRouter inference provider(s) (e.g. `Together,DeepInfra`) | Optional |
+| `OPENROUTER_ALLOW_FALLBACKS` | Allow OpenRouter fallbacks if preferred provider unavailable (`true`/`false`) | `true` |
 | `GOOGLE_API_KEY` | Google Gemini API Key | Optional |
 | `OPENAI_API_KEY` | OpenAI API Key | Optional |
 | `ANTHROPIC_API_KEY` | Anthropic Claude API Key | Optional |
