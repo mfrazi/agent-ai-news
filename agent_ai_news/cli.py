@@ -1,14 +1,14 @@
-"""Command line interface for AI Intelligence Agent."""
+"""Command line interface for agent-ai-news."""
 
 import subprocess
 import typer
 from rich.console import Console
-from agent.core.orchestrator import run_research_query
-from agent.core.synthesizer import save_report
-from agent.publishers.mkdocs_publisher import publish_to_site, rebuild_site_index
+from agent_ai_news.core.orchestrator import run_research_query
+from agent_ai_news.core.synthesizer import save_report
+from agent_ai_news.publishers.mkdocs_publisher import publish_to_site, rebuild_site_index
 
 app = typer.Typer(
-    help="AI Intelligence Agent: Autonomous research and briefing generator using deepagents.",
+    help="agent-ai-news: Autonomous research and briefing generator using deepagents.",
     add_completion=False,
 )
 console = Console()
@@ -78,7 +78,7 @@ def serve(
     import uvicorn
 
     console.print(f"[bold green]🚀 Launching API server on {host}:{port}...[/bold green]")
-    uvicorn.run("agent.server:app", host=host, port=port, reload=False)
+    uvicorn.run("agent_ai_news.server:app", host=host, port=port, reload=False)
 
 
 if __name__ == "__main__":

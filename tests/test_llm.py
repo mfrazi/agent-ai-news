@@ -1,8 +1,8 @@
 # tests/test_llm.py
 import pytest
 from unittest.mock import patch
-from agent.config import get_settings
-from agent.llm import get_chat_model
+from agent_ai_news.config import get_settings
+from agent_ai_news.llm import get_chat_model
 
 @pytest.fixture(autouse=True)
 def clear_settings_cache():

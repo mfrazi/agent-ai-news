@@ -1,9 +1,9 @@
 # tests/test_tools.py
 from unittest.mock import patch, MagicMock
-from agent.tools.web_search import search_web
-from agent.tools.rss import fetch_ai_rss
-from agent.tools.arxiv import query_arxiv
-from agent.tools.huggingface import query_hf_papers
+from agent_ai_news.tools.web_search import search_web
+from agent_ai_news.tools.rss import fetch_ai_rss
+from agent_ai_news.tools.arxiv import query_arxiv
+from agent_ai_news.tools.huggingface import query_hf_papers
 
 
 def test_web_search_fallback_to_ddg(monkeypatch):

@@ -38,7 +38,7 @@
 
 **Interfaces:**
 - Consumes: Environment variables (`OPENROUTER_API_KEY`, `GOOGLE_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `TAVILY_API_KEY`, etc.)
-- Produces: `agent.config.Settings` (Pydantic settings object providing typed access to app configuration)
+- Produces: `agent_ai_news.config.Settings` (Pydantic settings object providing typed access to app configuration)
 
 - [ ] **Step 1: Write the failing test for configuration loader**
 
@@ -46,7 +46,7 @@
 # tests/test_config.py
 import os
 import pytest
-from agent.config import Settings, get_settings
+from agent_ai_news.config import Settings, get_settings
 
 def test_settings_default_values(monkeypatch):
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
@@ -93,7 +93,7 @@ git commit -m "feat: setup project dependencies and configuration loader"
 - Test: `tests/test_llm.py`
 
 **Interfaces:**
-- Consumes: `agent.config.Settings`
+- Consumes: `agent_ai_news.config.Settings`
 - Produces: `get_chat_model(provider: str | None = None, model_name: str | None = None) -> BaseChatModel`
 
 - [ ] **Step 1: Write the failing tests for LLM factory**
@@ -102,7 +102,7 @@ git commit -m "feat: setup project dependencies and configuration loader"
 # tests/test_llm.py
 import pytest
 from unittest.mock import patch, MagicMock
-from agent.llm import get_chat_model
+from agent_ai_news.llm import get_chat_model
 
 def test_get_chat_model_openrouter(monkeypatch):
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-dummy")
@@ -122,7 +122,7 @@ def test_get_chat_model_unsupported():
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/test_llm.py -v`  
-Expected: FAIL with `ModuleNotFoundError: No module named 'agent.llm'`
+Expected: FAIL with `ModuleNotFoundError: No module named 'agent_ai_news.llm'`
 
 - [ ] **Step 3: Implement `get_chat_model` in `agent/llm.py`**
 
@@ -155,20 +155,20 @@ git commit -m "feat: add provider-agnostic LLM factory with OpenRouter support"
 **Interfaces:**
 - Consumes: Network HTTP endpoints / APIs
 - Produces:
-  - `agent.tools.web_search.search_web(query: str, days: int = 7, max_results: int = 5) -> str`
-  - `agent.tools.rss.fetch_ai_rss(days: int = 3, max_entries_per_feed: int = 5) -> str`
-  - `agent.tools.arxiv.query_arxiv(topic: str, max_results: int = 5) -> str`
-  - `agent.tools.huggingface.query_hf_papers(limit: int = 5) -> str`
+  - `agent_ai_news.tools.web_search.search_web(query: str, days: int = 7, max_results: int = 5) -> str`
+  - `agent_ai_news.tools.rss.fetch_ai_rss(days: int = 3, max_entries_per_feed: int = 5) -> str`
+  - `agent_ai_news.tools.arxiv.query_arxiv(topic: str, max_results: int = 5) -> str`
+  - `agent_ai_news.tools.huggingface.query_hf_papers(limit: int = 5) -> str`
 
 - [ ] **Step 1: Write the failing tests for source tools**
 
 ```python
 # tests/test_tools.py
 from unittest.mock import patch, MagicMock
-from agent.tools.web_search import search_web
-from agent.tools.rss import fetch_ai_rss
-from agent.tools.arxiv import query_arxiv
-from agent.tools.huggingface import query_hf_papers
+from agent_ai_news.tools.web_search import search_web
+from agent_ai_news.tools.rss import fetch_ai_rss
+from agent_ai_news.tools.arxiv import query_arxiv
+from agent_ai_news.tools.huggingface import query_hf_papers
 
 def test_web_search_fallback_to_ddg(monkeypatch):
     monkeypatch.delenv("TAVILY_API_KEY", raising=False)
@@ -198,7 +198,7 @@ def test_arxiv_query_mock():
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/test_tools.py -v`  
-Expected: FAIL with `ModuleNotFoundError: No module named 'agent.tools'`
+Expected: FAIL with `ModuleNotFoundError: No module named 'agent_ai_news.tools'`
 
 - [ ] **Step 3: Implement tools in `agent/tools/`**
 
@@ -227,19 +227,19 @@ git commit -m "feat: implement web, rss, arxiv, and huggingface tools with fallb
 - Test: `tests/test_scouts.py`
 
 **Interfaces:**
-- Consumes: `agent.llm.get_chat_model`, `agent.tools.*`
+- Consumes: `agent_ai_news.llm.get_chat_model`, `agent_ai_news.tools.*`
 - Produces:
-  - `agent.core.scouts.create_news_scout_subagent(model) -> DeepAgent / Runnable`
-  - `agent.core.scouts.create_paper_scout_subagent(model) -> DeepAgent / Runnable`
-  - `agent.core.orchestrator.create_lead_research_agent(model) -> DeepAgent`
+  - `agent_ai_news.core.scouts.create_news_scout_subagent(model) -> DeepAgent / Runnable`
+  - `agent_ai_news.core.scouts.create_paper_scout_subagent(model) -> DeepAgent / Runnable`
+  - `agent_ai_news.core.orchestrator.create_lead_research_agent(model) -> DeepAgent`
 
 - [ ] **Step 1: Write the failing test for subagent builders**
 
 ```python
 # tests/test_scouts.py
 from unittest.mock import MagicMock
-from agent.core.scouts import create_news_scout_subagent, create_paper_scout_subagent
-from agent.core.orchestrator import create_lead_research_agent
+from agent_ai_news.core.scouts import create_news_scout_subagent, create_paper_scout_subagent
+from agent_ai_news.core.orchestrator import create_lead_research_agent
 
 def test_scout_agents_creation():
     mock_model = MagicMock()
@@ -254,7 +254,7 @@ def test_scout_agents_creation():
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/test_scouts.py -v`  
-Expected: FAIL with `ModuleNotFoundError: No module named 'agent.core'`
+Expected: FAIL with `ModuleNotFoundError: No module named 'agent_ai_news.core'`
 
 - [ ] **Step 3: Implement `scouts.py` and `orchestrator.py`**
 
@@ -283,9 +283,9 @@ git commit -m "feat: build news and academic scout subagents with deepagents orc
 **Interfaces:**
 - Consumes: Raw findings from subagents / research runs
 - Produces:
-  - `agent.core.synthesizer.ResearchReport` (Pydantic model)
-  - `agent.core.synthesizer.format_report_markdown(report: ResearchReport) -> str`
-  - `agent.core.synthesizer.save_report(report_md: str, topic: str, report_type: str = "research") -> Path`
+  - `agent_ai_news.core.synthesizer.ResearchReport` (Pydantic model)
+  - `agent_ai_news.core.synthesizer.format_report_markdown(report: ResearchReport) -> str`
+  - `agent_ai_news.core.synthesizer.save_report(report_md: str, topic: str, report_type: str = "research") -> Path`
 
 - [ ] **Step 1: Write the failing test for report synthesis and storage**
 
@@ -293,10 +293,10 @@ git commit -m "feat: build news and academic scout subagents with deepagents orc
 # tests/test_synthesizer.py
 import os
 from pathlib import Path
-from agent.core.synthesizer import ResearchReport, format_report_markdown, save_report
+from agent_ai_news.core.synthesizer import ResearchReport, format_report_markdown, save_report
 
 def test_format_and_save_report(tmp_path, monkeypatch):
-    monkeypatch.setattr("agent.config.get_settings", lambda: type("Dummy", (), {"reports_dir": str(tmp_path)})())
+    monkeypatch.setattr("agent_ai_news.config.get_settings", lambda: type("Dummy", (), {"reports_dir": str(tmp_path)})())
     report = ResearchReport(
         title="Reasoning Breakthroughs",
         date="2026-09-26",
@@ -320,7 +320,7 @@ def test_format_and_save_report(tmp_path, monkeypatch):
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/test_synthesizer.py -v`  
-Expected: FAIL with `ModuleNotFoundError: No module named 'agent.core.synthesizer'`
+Expected: FAIL with `ModuleNotFoundError: No module named 'agent_ai_news.core.synthesizer'`
 
 - [ ] **Step 3: Implement `ResearchReport`, `format_report_markdown`, and `save_report` in `agent/core/synthesizer.py`**
 
@@ -353,21 +353,21 @@ git commit -m "feat: implement report formatting and persistence engine"
 **Interfaces:**
 - Consumes: Generated markdown reports from `reports/`
 - Produces:
-  - `agent.publishers.mkdocs_publisher.publish_to_site(report_path: Path, report_type: str = "research") -> Path`
-  - `agent.publishers.mkdocs_publisher.rebuild_site_index() -> None`
+  - `agent_ai_news.publishers.mkdocs_publisher.publish_to_site(report_path: Path, report_type: str = "research") -> Path`
+  - `agent_ai_news.publishers.mkdocs_publisher.rebuild_site_index() -> None`
 
 - [ ] **Step 1: Write the failing test for MkDocs publisher**
 
 ```python
 # tests/test_publisher.py
 from pathlib import Path
-from agent.publishers.mkdocs_publisher import publish_to_site, rebuild_site_index
+from agent_ai_news.publishers.mkdocs_publisher import publish_to_site, rebuild_site_index
 
 def test_publish_to_site(tmp_path, monkeypatch):
     site_docs = tmp_path / "site_docs"
     site_docs.mkdir()
     (site_docs / "index.md").write_text("# AI Intelligence Portal\n\n## Archive\n")
-    monkeypatch.setattr("agent.config.get_settings", lambda: type("Dummy", (), {"site_docs_dir": str(site_docs)})())
+    monkeypatch.setattr("agent_ai_news.config.get_settings", lambda: type("Dummy", (), {"site_docs_dir": str(site_docs)})())
     
     sample_report = tmp_path / "2026-09-26-ai-digest.md"
     sample_report.write_text("---\ntitle: Daily AI Digest\ndate: 2026-09-26\n---\n# Daily AI Digest\nContent")
@@ -384,7 +384,7 @@ def test_publish_to_site(tmp_path, monkeypatch):
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/test_publisher.py -v`  
-Expected: FAIL with `ModuleNotFoundError: No module named 'agent.publishers'`
+Expected: FAIL with `ModuleNotFoundError: No module named 'agent_ai_news.publishers'`
 
 - [ ] **Step 3: Implement `mkdocs.yml`, `site_docs/` structure, and `agent/publishers/mkdocs_publisher.py`**
 
@@ -413,7 +413,7 @@ git commit -m "feat: add MkDocs Material configuration and web publishing pipeli
 - Test: `tests/test_server.py`
 
 **Interfaces:**
-- Consumes: `agent.core.orchestrator`, `agent.core.synthesizer`, `agent.publishers.mkdocs_publisher`
+- Consumes: `agent_ai_news.core.orchestrator`, `agent_ai_news.core.synthesizer`, `agent_ai_news.publishers.mkdocs_publisher`
 - Produces:
   - CLI commands: `research`, `digest`, `publish`
   - FastAPI routes: `/api/research`, `/api/digest`, `/api/reports`, `/health`
@@ -424,7 +424,7 @@ git commit -m "feat: add MkDocs Material configuration and web publishing pipeli
 # tests/test_server.py
 from fastapi.testclient import TestClient
 from unittest.mock import patch
-from agent.server import app
+from agent_ai_news.server import app
 
 client = TestClient(app)
 
@@ -434,7 +434,7 @@ def test_health_check():
     assert response.json() == {"status": "ok"}
 
 def test_api_research_endpoint():
-    with patch("agent.core.orchestrator.run_research_query") as mock_run:
+    with patch("agent_ai_news.core.orchestrator.run_research_query") as mock_run:
         mock_run.return_value = "reports/2026-09-26-research-test.md"
         response = client.post("/api/research", json={"query": "Test AI", "publish": False})
         assert response.status_code == 200
@@ -444,7 +444,7 @@ def test_api_research_endpoint():
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/test_server.py -v`  
-Expected: FAIL with `ModuleNotFoundError: No module named 'agent.server'`
+Expected: FAIL with `ModuleNotFoundError: No module named 'agent_ai_news.server'`
 
 - [ ] **Step 3: Implement `agent/cli.py` (with Typer) and `agent/server.py` (with FastAPI)**
 

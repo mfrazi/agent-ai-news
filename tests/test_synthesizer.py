@@ -1,7 +1,7 @@
 # tests/test_synthesizer.py
 import os
 from pathlib import Path
-from agent.core.synthesizer import (
+from agent_ai_news.core.synthesizer import (
     ResearchReport,
     format_report_markdown,
     normalize_to_report_markdown,
@@ -11,7 +11,7 @@ from agent.core.synthesizer import (
 
 def test_format_and_save_report(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "agent.core.synthesizer.get_settings",
+        "agent_ai_news.core.synthesizer.get_settings",
         lambda: type("Dummy", (), {"reports_dir": str(tmp_path)})(),
     )
     report = ResearchReport(
@@ -50,7 +50,7 @@ def test_format_and_save_report(tmp_path, monkeypatch):
 
 def test_save_report_digest_naming(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "agent.core.synthesizer.get_settings",
+        "agent_ai_news.core.synthesizer.get_settings",
         lambda: type("Dummy", (), {"reports_dir": str(tmp_path)})(),
     )
     file_path = save_report("# Daily AI Digest", slug="daily-digest", report_type="digest", date_str="2026-09-26")

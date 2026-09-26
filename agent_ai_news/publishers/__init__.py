@@ -1,6 +1,6 @@
-"""Publishing and export pipeline for AI Intelligence Agent."""
+"""Publishing and export pipeline for agent-ai-news."""
 
-from agent.publishers.mkdocs_publisher import (
+from agent_ai_news.publishers.mkdocs_publisher import (
     publish_to_site,
     rebuild_site_index,
 )

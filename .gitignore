@@ -23,3 +23,6 @@ htmlcov/
 
 # MkDocs site output
 site/
+
+# IDE
+.idea/

@@ -1,0 +1,3 @@
+"""agent-ai-news package."""
+
+__version__ = "0.1.0"

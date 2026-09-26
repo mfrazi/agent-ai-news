@@ -1,6 +1,6 @@
 # tests/test_publisher.py
 from pathlib import Path
-from agent.publishers.mkdocs_publisher import publish_to_site, rebuild_site_index
+from agent_ai_news.publishers.mkdocs_publisher import publish_to_site, rebuild_site_index
 
 
 def test_publish_to_site(tmp_path, monkeypatch):
@@ -8,7 +8,7 @@ def test_publish_to_site(tmp_path, monkeypatch):
     site_docs.mkdir()
     (site_docs / "index.md").write_text("# AI Intelligence Portal\n\n## Archive\n")
     monkeypatch.setattr(
-        "agent.publishers.mkdocs_publisher.get_settings",
+        "agent_ai_news.publishers.mkdocs_publisher.get_settings",
         lambda: type("Dummy", (), {"site_docs_dir": str(site_docs)})(),
     )
 
@@ -31,7 +31,7 @@ def test_publish_to_site(tmp_path, monkeypatch):
 def test_publish_creates_missing_directories(tmp_path, monkeypatch):
     site_docs = tmp_path / "missing_site_docs"
     monkeypatch.setattr(
-        "agent.publishers.mkdocs_publisher.get_settings",
+        "agent_ai_news.publishers.mkdocs_publisher.get_settings",
         lambda: type("Dummy", (), {"site_docs_dir": str(site_docs)})(),
     )
 

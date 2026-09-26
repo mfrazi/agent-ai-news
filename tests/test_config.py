@@ -1,7 +1,7 @@
 # tests/test_config.py
 import os
 import pytest
-from agent.config import Settings, get_settings
+from agent_ai_news.config import Settings, get_settings
 
 def test_settings_default_values(monkeypatch):
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)

@@ -86,7 +86,7 @@ The architecture centers on an orchestrating **Lead Research Deep Agent** coordi
 
 ## 3. LLM Provider Architecture (Factory Pattern)
 
-The agent connects to LLMs through a unified factory (`agent.llm.get_chat_model`) configured via environment variables.
+The agent connects to LLMs through a unified factory (`agent_ai_news.llm.get_chat_model`) configured via environment variables.
 
 ### Supported Providers
 1. **OpenRouter (`openrouter`):**
@@ -115,14 +115,14 @@ If `AGENT_LLM_PROVIDER` is not explicitly set, the factory inspects available ke
 
 ## 4. Tools & Connectors Specification
 
-### 4.1 Web Search (`agent.tools.web_search`)
+### 4.1 Web Search (`agent_ai_news.tools.web_search`)
 * **Signature:** `search_web(query: str, days: int = 7, max_results: int = 5) -> str`
 * **Behavior:**
   - If `TAVILY_API_KEY` is set, uses Tavily Search API with `topic="news"` or `time_range`.
   - If missing or if Tavily returns a quota/rate-limit error, catches the error and executes `DuckDuckGoSearchRun`.
   - Returns sanitized snippets, title, and source URL.
 
-### 4.2 RSS Feed Ingestion (`agent.tools.rss`)
+### 4.2 RSS Feed Ingestion (`agent_ai_news.tools.rss`)
 * **Signature:** `fetch_ai_rss(days: int = 3, max_entries_per_feed: int = 5) -> str`
 * **Sources:**
   - OpenAI News (`https://openai.com/news/rss.xml`)
@@ -135,14 +135,14 @@ If `AGENT_LLM_PROVIDER` is not explicitly set, the factory inspects available ke
   - Filters entries older than `days`.
   - Returns title, lab, summary snippet, and URL.
 
-### 4.3 arXiv Query (`agent.tools.arxiv`)
+### 4.3 arXiv Query (`agent_ai_news.tools.arxiv`)
 * **Signature:** `query_arxiv(topic: str, max_results: int = 5, categories: list[str] = ["cs.AI", "cs.LG", "cs.CL"]) -> str`
 * **Behavior:**
   - Queries `http://export.arxiv.org/api/query`.
   - Sorts by `submittedDate` descending.
   - Extracts title, authors, abstract summary, and PDF/abstract URLs.
 
-### 4.4 Hugging Face Daily Papers (`agent.tools.huggingface`)
+### 4.4 Hugging Face Daily Papers (`agent_ai_news.tools.huggingface`)
 * **Signature:** `query_hf_papers(limit: int = 5) -> str`
 * **Behavior:**
   - Fetches `https://huggingface.co/api/daily_papers`.
@@ -222,34 +222,34 @@ site_docs/                    # Documentation source root
   - `content.code.copy`
 * **Markdown Extensions:** Admonitions (callout notes), tables, frontmatter parsing, task lists.
 
-### 6.3 Publisher Module (`agent.publishers.mkdocs`)
+### 6.3 Publisher Module (`agent_ai_news.publishers.mkdocs`)
 * Automatically syncs newly written reports from `reports/` into `site_docs/digests/` or `site_docs/research/`.
 * Dynamically updates `site_docs/index.md` with:
   - Featured latest briefing banner.
   - Reverse-chronological table of recent reports with category tags and date.
-* Provides programmatic rebuild or CLI command: `python -m agent.cli publish [--serve]`.
+* Provides programmatic rebuild or CLI command: `python -m agent_ai_news.cli publish [--serve]`.
 
 ---
 
 ## 7. Interfaces & Entrypoints
 
-### 7.1 CLI (`agent.cli`)
+### 7.1 CLI (`agent_ai_news.cli`)
 Built using `typer` or `argparse`:
 ```bash
 # Ad-hoc interactive research
-python -m agent.cli research "Emerging approaches to test-time reasoning and verification"
+python -m agent_ai_news.cli research "Emerging approaches to test-time reasoning and verification"
 
 # Daily digest (past 24h)
-python -m agent.cli digest --days 1 --topic "Frontier LLMs, Multimodal, Open Weights"
+python -m agent_ai_news.cli digest --days 1 --topic "Frontier LLMs, Multimodal, Open Weights"
 
 # Weekly digest (past 7 days)
-python -m agent.cli digest --days 7 --output "reports/weekly-digest.md"
+python -m agent_ai_news.cli digest --days 7 --output "reports/weekly-digest.md"
 
 # Build static website or preview locally
-python -m agent.cli publish --serve
+python -m agent_ai_news.cli publish --serve
 ```
 
-### 7.2 FastAPI Service (`agent.server`)
+### 7.2 FastAPI Service (`agent_ai_news.server`)
 Lightweight web interface for remote trigger and integration:
 * `POST /api/research` (`{ "query": string, "max_sources": int, "publish": bool }`)
 * `POST /api/digest` (`{ "days": int, "topics": string[], "publish": bool }`)
@@ -265,7 +265,7 @@ Lightweight web interface for remote trigger and integration:
 * Base Image: `python:3.11-slim`
 * Multi-stage build for minimal image size.
 * Can be run as:
-  - Background server (`uvicorn agent.server:app --host 0.0.0.0 --port 8000`).
+  - Background server (`uvicorn agent_ai_news.server:app --host 0.0.0.0 --port 8000`).
   - One-off CLI command (`docker run --env-file .env ai-agent digest --days 1`).
 
 ### 8.2 GitHub Actions Cron & Publishing Workflow (`.github/workflows/ai-digest.yml`)
@@ -274,8 +274,8 @@ Automated daily briefing and continuous website deployment:
 2. **Steps:**
    - Checkout repository.
    - Set up Python 3.11 with dependencies cached (`pip install .[web]`).
-   - Run `python -m agent.cli digest --days 1`.
-   - Update MkDocs index via `python -m agent.cli publish`.
+   - Run `python -m agent_ai_news.cli digest --days 1`.
+   - Update MkDocs index via `python -m agent_ai_news.cli publish`.
    - Commit new reports and updated index back to `main`.
    - Deploy static site automatically to **GitHub Pages** (`peaceiris/actions-gh-pages` or native `actions/deploy-pages`).
 

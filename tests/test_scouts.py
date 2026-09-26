@@ -1,8 +1,8 @@
 # tests/test_scouts.py
 from unittest.mock import MagicMock, patch
 from langchain_core.language_models.chat_models import BaseChatModel
-from agent.core.scouts import create_news_scout_subagent, create_paper_scout_subagent
-from agent.core.orchestrator import create_lead_research_agent, run_research_query
+from agent_ai_news.core.scouts import create_news_scout_subagent, create_paper_scout_subagent
+from agent_ai_news.core.orchestrator import create_lead_research_agent, run_research_query
 
 
 def test_scout_agents_creation():
@@ -30,7 +30,7 @@ def test_run_research_query_mock():
     mock_message = MagicMock(content="# AI Research Report\nKey findings...")
     mock_graph.invoke.return_value = {"messages": [mock_message]}
 
-    with patch("agent.core.orchestrator.create_lead_research_agent", return_value=mock_graph):
+    with patch("agent_ai_news.core.orchestrator.create_lead_research_agent", return_value=mock_graph):
         result = run_research_query("reasoning models")
         assert "# AI Research Report" in result
         assert "Key findings..." in result

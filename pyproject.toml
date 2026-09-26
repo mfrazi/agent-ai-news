@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ai-intelligence-agent"
+name = "agent-ai-news"
 version = "0.1.0"
 description = "Autonomous AI information research and digest agent using LangChain deepagents"
 authors = [{ name = "AI Engineer" }]
@@ -40,11 +40,12 @@ dev = [
 ]
 
 [project.scripts]
-ai-agent = "agent.cli:app"
+agent-ai-news = "agent_ai_news.cli:app"
+ai-agent = "agent_ai_news.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["agent*"]
+include = ["agent_ai_news*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

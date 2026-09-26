@@ -1,9 +1,9 @@
-"""Provider-agnostic LLM Factory for AI Intelligence Agent."""
+"""Provider-agnostic LLM Factory for agent-ai-news."""
 
 import os
 from typing import Optional
 from langchain_core.language_models.chat_models import BaseChatModel
-from agent.config import get_settings
+from agent_ai_news.config import get_settings
 
 
 def get_chat_model(

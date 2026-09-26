@@ -3,7 +3,7 @@
 import os
 import logging
 from typing import Optional
-from agent.config import get_settings
+from agent_ai_news.config import get_settings
 
 logger = logging.getLogger(__name__)
 

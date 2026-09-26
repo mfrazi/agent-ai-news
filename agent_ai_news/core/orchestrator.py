@@ -2,8 +2,8 @@
 
 from typing import Any, Optional
 from deepagents import create_deep_agent
-from agent.llm import get_chat_model
-from agent.core.scouts import create_news_scout_subagent, create_paper_scout_subagent
+from agent_ai_news.llm import get_chat_model
+from agent_ai_news.core.scouts import create_news_scout_subagent, create_paper_scout_subagent
 
 LEAD_AGENT_SYSTEM_PROMPT = """You are the Lead AI Intelligence Research Agent.
 Your mission is to produce authoritative, highly structured research briefings and digests on Artificial Intelligence.
@@ -49,6 +49,6 @@ def run_research_query(query: str, model: Any = None, report_type: str = "resear
         last_message = messages[-1]
         raw_content = getattr(last_message, "content", str(last_message))
 
-    from agent.core.synthesizer import normalize_to_report_markdown
+    from agent_ai_news.core.synthesizer import normalize_to_report_markdown
     return normalize_to_report_markdown(raw_content, title=query, report_type=report_type)
 

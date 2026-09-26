@@ -1,4 +1,4 @@
-# AI Intelligence Research & Digest Agent
+# agent-ai-news: AI Intelligence Research & Digest Agent
 
 An autonomous research and intelligence agent powered by LangChain's **`deepagents`** harness. It continuously discovers, filters, and synthesizes breaking Artificial Intelligence news, frontier model releases, arXiv preprints, and Hugging Face trending papers into structured briefings and publishes them to a searchable web portal.
 
@@ -23,27 +23,27 @@ An autonomous research and intelligence agent powered by LangChain's **`deepagen
 flowchart TD
     %% INGRESS & TRIGGERS
     subgraph S1["1. Triggers & Ingress"]
-        T_CLI["CLI Interface\n(python -m agent.cli research / digest)"]
+        T_CLI["CLI Interface\n(python -m agent_ai_news.cli research / digest)"]
         T_API["FastAPI REST Server\n(POST /api/research | /api/digest)"]
         T_CRON["GitHub Actions Cron\n(Daily at 08:00 UTC)"]
     end
 
     %% CONFIGURATION & MODEL RESOLUTION
     subgraph S2["2. Configuration & Model Factory"]
-        CONFIG["Settings (agent.config)\nLoads .env & API Keys"]
-        LLM["LLM Factory (agent.llm)\nOpenRouter | Gemini | OpenAI | Anthropic"]
+        CONFIG["Settings (agent_ai_news.config)\nLoads .env & API Keys"]
+        LLM["LLM Factory (agent_ai_news.llm)\nOpenRouter | Gemini | OpenAI | Anthropic"]
     end
 
     %% ORCHESTRATION & SCOUTS
     subgraph S3["3. DeepAgents Multi-Subagent Harness"]
-        ORCH["Lead Research Agent (agent.core.orchestrator)\n- Built via deepagents.create_deep_agent\n- Planning (todo tool) & Workspace Memory"]
+        ORCH["Lead Research Agent (agent_ai_news.core.orchestrator)\n- Built via deepagents.create_deep_agent\n- Planning (todo tool) & Workspace Memory"]
         
-        SCOUT_NEWS["News & Web Scout Subagent\n(agent.core.scouts)\nIsolated Context"]
-        SCOUT_PAPER["Academic Paper Scout Subagent\n(agent.core.scouts)\nIsolated Context"]
+        SCOUT_NEWS["News & Web Scout Subagent\n(agent_ai_news.core.scouts)\nIsolated Context"]
+        SCOUT_PAPER["Academic Paper Scout Subagent\n(agent_ai_news.core.scouts)\nIsolated Context"]
     end
 
     %% SOURCE TOOLS & CONNECTORS
-    subgraph S4["4. Information Retrieval Tools (agent.tools)"]
+    subgraph S4["4. Information Retrieval Tools (agent_ai_news.tools)"]
         TOOL_TAVILY["search_web\nTavily API (Fallback: DuckDuckGo)"]
         TOOL_RSS["fetch_ai_rss\nOpenAI, Google DeepMind, Anthropic, HF"]
         TOOL_ARXIV["query_arxiv\narXiv API (cs.AI, cs.LG, cs.CL)"]
@@ -52,13 +52,13 @@ flowchart TD
 
     %% SYNTHESIS & STORAGE
     subgraph S5["5. Synthesis & Persistence"]
-        SYNTH["Report Synthesizer (agent.core.synthesizer)\n- ResearchReport Pydantic Schema\n- normalize_to_report_markdown"]
+        SYNTH["Report Synthesizer (agent_ai_news.core.synthesizer)\n- ResearchReport Pydantic Schema\n- normalize_to_report_markdown"]
         REPORTS["Raw Markdown Archive\nreports/YYYY-MM-DD-*.md"]
     end
 
     %% WEB PUBLISHING & DEPLOYMENT
     subgraph S6["6. Web Publishing & Distribution"]
-        PUB["Publisher (agent.publishers.mkdocs_publisher)\n- Sync to site_docs/digests/ or research/\n- rebuild_site_index updates site_docs/index.md"]
+        PUB["Publisher (agent_ai_news.publishers.mkdocs_publisher)\n- Sync to site_docs/digests/ or research/\n- rebuild_site_index updates site_docs/index.md"]
         MKDOCS["Material for MkDocs Engine\n(mkdocs.yml)"]
         GH_PAGES["GitHub Pages\n(Searchable Live Website)"]
         LOCAL_SERVE["Local Web Preview\n(http://127.0.0.1:8000)"]
@@ -106,8 +106,8 @@ Python 3.11 or higher is required.
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/agent.git
-cd agent
+git clone https://github.com/your-username/agent-ai-news.git
+cd agent-ai-news
 
 # Create and activate virtual environment
 python3 -m venv .venv
@@ -143,41 +143,43 @@ cp .env.example .env
 
 ## 💻 CLI Usage
 
-The package provides the `ai-agent` CLI entrypoint (or `python -m agent.cli`):
+The package provides the `agent-ai-news` CLI entrypoint (or `python -m agent_ai_news.cli`):
 
 ### 1. Interactive On-Demand Research
 Run a deep-dive research query on any specific AI topic:
 ```bash
-python -m agent.cli research "Emerging techniques in test-time compute and reasoning models"
+agent-ai-news research "Emerging techniques in test-time compute and reasoning models"
+# Or:
+python -m agent_ai_news.cli research "Emerging techniques in test-time compute and reasoning models"
 ```
 
 ### 2. Automated Daily / Weekly Digest
 Generate an intelligence briefing across web, lab RSS, arXiv, and Hugging Face:
 ```bash
 # Generate daily briefing (past 24h)
-python -m agent.cli digest --days 1 --topic "Frontier LLMs, Open Weights, Robotics"
+agent-ai-news digest --days 1 --topic "Frontier LLMs, Open Weights, Robotics"
 
 # Generate weekly briefing (past 7 days)
-python -m agent.cli digest --days 7
+agent-ai-news digest --days 7
 ```
 
 ### 3. Static Web Portal Preview
 Rebuild the documentation archive and start a local MkDocs preview:
 ```bash
-python -m agent.cli publish --serve
+agent-ai-news publish --serve
 ```
 Visit `http://127.0.0.1:8000` to browse your searchable intelligence portal.
 
 ### 4. Launch FastAPI REST Server
 ```bash
-python -m agent.cli serve --host 0.0.0.0 --port 8000
+agent-ai-news serve --host 0.0.0.0 --port 8000
 ```
 
 ---
 
 ## 🌐 FastAPI REST API
 
-When running the web server (`uvicorn agent.server:app` or `python -m agent.cli serve`), the following endpoints are available:
+When running the web server (`uvicorn agent_ai_news.server:app` or `agent-ai-news serve`), the following endpoints are available:
 
 * `GET /health`: Health verification endpoint (`{"status": "ok"}`).
 * `POST /api/research`: Trigger on-demand research:
@@ -230,7 +232,7 @@ docker compose logs -f
 
 To run a one-off CLI command inside Docker:
 ```bash
-docker run --rm --env-file .env ai-intelligence-agent python -m agent.cli digest --days 1
+docker run --rm --env-file .env agent-ai-news python -m agent_ai_news.cli digest --days 1
 ```
 
 ### Option C: Cloud Container Platforms (Google Cloud Run / Railway / Fly.io)
@@ -238,7 +240,7 @@ Deploy the containerized FastAPI server to serverless container hosts:
 
 * **Google Cloud Run:**
   ```bash
-  gcloud run deploy ai-agent \
+  gcloud run deploy agent-ai-news \
     --source . \
     --port 8000 \
     --allow-unauthenticated \

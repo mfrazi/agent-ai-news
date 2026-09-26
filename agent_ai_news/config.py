@@ -1,4 +1,4 @@
-"""Configuration module for AI Intelligence Agent."""
+"""Configuration module for agent-ai-news."""
 
 import os
 from functools import lru_cache

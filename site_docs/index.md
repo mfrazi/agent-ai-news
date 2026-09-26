@@ -8,7 +8,7 @@ Welcome to the **AI Intelligence Portal**. This knowledge archive is continuousl
 
 | Date | Type | Topic / Title | Link |
 | :--- | :--- | :--- | :--- |
-| *No reports published yet. Run `python -m agent.cli digest` to generate your first briefing.* | - | - | - |
+| *No reports published yet. Run `python -m agent_ai_news.cli digest` to generate your first briefing.* | - | - | - |
 
 ---
 

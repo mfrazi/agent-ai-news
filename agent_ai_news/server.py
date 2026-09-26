@@ -1,16 +1,16 @@
-"""FastAPI web server for AI Intelligence Agent."""
+"""FastAPI web server for agent-ai-news."""
 
 from pathlib import Path
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from agent.config import get_settings
-from agent.core.orchestrator import run_research_query
-from agent.core.synthesizer import save_report
-from agent.publishers.mkdocs_publisher import publish_to_site, rebuild_site_index
+from agent_ai_news.config import get_settings
+from agent_ai_news.core.orchestrator import run_research_query
+from agent_ai_news.core.synthesizer import save_report
+from agent_ai_news.publishers.mkdocs_publisher import publish_to_site, rebuild_site_index
 
 app = FastAPI(
-    title="AI Intelligence Agent API",
+    title="agent-ai-news API",
     description="Autonomous AI research and digest API powered by LangChain deepagents",
     version="0.1.0",
 )

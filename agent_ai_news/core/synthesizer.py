@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
-from agent.config import get_settings
+from agent_ai_news.config import get_settings
 
 
 class ResearchReport(BaseModel):

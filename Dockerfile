@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for AI Intelligence Agent
+# Multi-stage Dockerfile for agent-ai-news
 FROM python:3.11-slim as builder
 
 WORKDIR /app
@@ -19,7 +19,7 @@ WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-COPY agent/ agent/
+COPY agent_ai_news/ agent_ai_news/
 COPY mkdocs.yml .
 COPY site_docs/ site_docs/
 COPY pyproject.toml .
@@ -34,4 +34,4 @@ ENV REPORTS_DIR=reports
 ENV SITE_DOCS_DIR=site_docs
 
 # Default command: run FastAPI server
-CMD ["uvicorn", "agent.server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "agent_ai_news.server:app", "--host", "0.0.0.0", "--port", "8000"]

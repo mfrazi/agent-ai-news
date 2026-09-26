@@ -5,7 +5,7 @@ import re
 import shutil
 from pathlib import Path
 from typing import Dict, List, Optional
-from agent.config import get_settings
+from agent_ai_news.config import get_settings
 
 
 def parse_frontmatter(file_path: Path) -> Dict[str, str]:
@@ -87,7 +87,7 @@ def rebuild_site_index() -> None:
         table_content = (
             "| Date | Type | Topic / Title | Link |\n"
             "| :--- | :--- | :--- | :--- |\n"
-            "| *No reports published yet. Run `python -m agent.cli digest` to generate your first briefing.* | - | - | - |"
+            "| *No reports published yet. Run `python -m agent_ai_news.cli digest` to generate your first briefing.* | - | - | - |"
         )
 
     index_file = site_docs_root / "index.md"
