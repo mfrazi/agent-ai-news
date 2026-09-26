@@ -1,0 +1,13 @@
+# Keep secrets, local environments and build artifacts out of the Docker build context
+.env
+.env.*
+!.env.example
+.git
+.venv
+venv
+**/__pycache__
+*.egg-info
+.pytest_cache
+.idea
+.superpowers
+site

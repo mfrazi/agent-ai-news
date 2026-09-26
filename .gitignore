@@ -17,8 +17,7 @@ build/
 .coverage
 htmlcov/
 
-# Agent runtime scratchpad & local artifacts
-.agent_workspace/
+# Local tool artifacts
 .superpowers/
 
 # MkDocs site output

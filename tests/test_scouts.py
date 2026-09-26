@@ -20,7 +20,7 @@ def test_scout_agents_creation():
 
     assert paper_scout is not None
     assert paper_scout["name"] == "academic_paper_scout"
-    assert len(paper_scout["tools"]) == 2
+    assert [t.__name__ for t in paper_scout["tools"]] == ["query_hf_papers", "search_web"]
 
     assert lead_agent is not None
 
@@ -34,3 +34,37 @@ def test_run_research_query_mock():
         result = run_research_query("reasoning models")
         assert "# AI Research Report" in result
         assert "Key findings..." in result
+
+
+def test_run_research_query_content_blocks():
+    """Anthropic/Gemini models return content as a list of blocks, not a string."""
+    mock_graph = MagicMock()
+    mock_message = MagicMock(
+        content=[
+            {"type": "text", "text": "Block one findings."},
+            {"type": "tool_use", "id": "t1", "name": "task", "input": {}},
+            {"type": "text", "text": "Block two findings."},
+        ]
+    )
+    mock_graph.invoke.return_value = {"messages": [mock_message]}
+
+    with patch("agent_ai_news.core.orchestrator.create_lead_research_agent", return_value=mock_graph):
+        result = run_research_query("reasoning models", report_type="digest")
+        assert "Block one findings." in result
+        assert "Block two findings." in result
+        assert "tool_use" not in result
+        assert "type: digest" in result
+
+
+def test_prompts_name_real_tools_and_distrust_tool_output():
+    from agent_ai_news.core.orchestrator import LEAD_AGENT_SYSTEM_PROMPT
+    from agent_ai_news.core.scouts import UNTRUSTED_CONTENT_RULE
+
+    assert UNTRUSTED_CONTENT_RULE in LEAD_AGENT_SYSTEM_PROMPT
+    for scout in (create_news_scout_subagent(), create_paper_scout_subagent()):
+        assert UNTRUSTED_CONTENT_RULE in scout["system_prompt"]
+        # every tool the prompt tells the model to use must exist under that name
+        tool_names = {t.__name__ for t in scout["tools"]}
+        for name in ("search_web", "fetch_ai_rss", "query_hf_papers", "web_search"):
+            if name in scout["system_prompt"]:
+                assert name in tool_names, f"{scout['name']} prompt mentions missing tool {name}"
