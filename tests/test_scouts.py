@@ -68,3 +68,16 @@ def test_prompts_name_real_tools_and_distrust_tool_output():
         for name in ("search_web", "fetch_ai_rss", "query_hf_papers", "web_search"):
             if name in scout["system_prompt"]:
                 assert name in tool_names, f"{scout['name']} prompt mentions missing tool {name}"
+
+
+def test_build_digest_query():
+    from agent_ai_news.core.orchestrator import DEFAULT_DIGEST_TOPIC, build_digest_query
+
+    assert build_digest_query(1, "Robotics") == "Compile an AI intelligence digest for the past day covering: Robotics"
+    assert build_digest_query(7, "") == f"Compile an AI intelligence digest for the past 7 days covering: {DEFAULT_DIGEST_TOPIC}"
+
+
+def test_lead_prompt_names_real_planning_tool():
+    from agent_ai_news.core.orchestrator import LEAD_AGENT_SYSTEM_PROMPT
+
+    assert "write_todos" in LEAD_AGENT_SYSTEM_PROMPT

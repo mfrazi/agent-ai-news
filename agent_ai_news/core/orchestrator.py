@@ -19,7 +19,7 @@ You have access to two specialized subagents:
 2. 'academic_paper_scout': Queries Hugging Face daily papers and searches the web for research papers.
 
 When addressing a topic or compiling a briefing:
-1. Plan your search strategy using the todo tool.
+1. Plan your search strategy using the write_todos tool.
 2. Delegate web/industry searches to 'news_scout'.
 3. Delegate academic/technical paper searches to 'academic_paper_scout'.
 4. Synthesize all findings into a cohesive, cited markdown report following this structure:
@@ -41,12 +41,20 @@ def create_lead_research_agent(
     news_scout = create_news_scout_subagent(llm)
     paper_scout = create_paper_scout_subagent(llm)
 
-    agent_graph = create_deep_agent(
+    return create_deep_agent(
         model=llm,
         subagents=[news_scout, paper_scout],
         system_prompt=LEAD_AGENT_SYSTEM_PROMPT,
     )
-    return agent_graph
+
+
+DEFAULT_DIGEST_TOPIC = "General AI, Frontier Models, Open Weights"
+
+
+def build_digest_query(days: int, topic: str = DEFAULT_DIGEST_TOPIC) -> str:
+    """Research request sent to the lead agent for a digest (shared by the CLI and the API)."""
+    period = "day" if days == 1 else f"{days} days"
+    return f"Compile an AI intelligence digest for the past {period} covering: {topic or DEFAULT_DIGEST_TOPIC}"
 
 
 def _message_text(content: Any) -> str:

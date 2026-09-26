@@ -11,7 +11,7 @@ from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 from agent_ai_news import __version__
 from agent_ai_news.config import get_settings
-from agent_ai_news.core.orchestrator import run_research_query
+from agent_ai_news.core.orchestrator import build_digest_query, run_research_query
 from agent_ai_news.core.synthesizer import REPORT_SUBFOLDERS, save_report
 from agent_ai_news.publishers.mkdocs_publisher import rebuild_site_index
 
@@ -90,8 +90,7 @@ def research_endpoint(req: ResearchRequest):
 @api.post("/digest")
 def digest_endpoint(req: DigestRequest):
     """Generate a scheduled or on-demand intelligence briefing."""
-    topic_str = ", ".join(req.topics) if req.topics else "General AI, LLMs, and Open Source"
-    query = f"Compile an AI intelligence digest for the past {req.days} days covering: {topic_str}"
+    query = build_digest_query(req.days, ", ".join(req.topics))
     result_content = run_research_query(query, report_type="digest", openrouter_providers=req.openrouter_provider)
     saved_path = save_report(result_content, slug="daily-digest", report_type="digest")
     rebuild_site_index()

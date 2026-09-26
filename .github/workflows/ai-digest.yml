@@ -16,6 +16,11 @@ on:
         required: false
         type: string
         default: "Frontier LLMs, Reasoning Models, Open Weights, Multimodal"
+      model:
+        description: "Model ID override (blank = AGENT_MODEL_NAME variable, then provider default)"
+        required: false
+        type: string
+        default: ""
 
 # Push the new report commit and the gh-pages branch; nothing else
 permissions:
@@ -50,7 +55,10 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
-          AGENT_LLM_PROVIDER: ${{ secrets.AGENT_LLM_PROVIDER || 'openrouter' }}
+          # Empty auto-detects the provider from whichever API key secret is set
+          AGENT_LLM_PROVIDER: ${{ secrets.AGENT_LLM_PROVIDER || '' }}
+          # Manual-run input, then the repository variable; empty uses the provider's default model
+          AGENT_MODEL_NAME: ${{ inputs.model || vars.AGENT_MODEL_NAME || '' }}
           # Inputs go through env vars, never ${{ }} inside the script, so they cannot inject shell code
           DIGEST_DAYS: ${{ inputs.days || 1 }}
           DIGEST_TOPIC: ${{ inputs.topic || 'Frontier LLMs, Reasoning Models, Open Weights, Multimodal' }}

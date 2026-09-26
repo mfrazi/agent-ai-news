@@ -38,13 +38,15 @@ def test_api_research_endpoint():
 
 
 def test_api_digest_endpoint():
-    with patch("agent_ai_news.server.run_research_query", return_value="Daily AI Digest content"), \
+    with patch("agent_ai_news.server.run_research_query", return_value="Daily AI Digest content") as mock_run, \
          patch("agent_ai_news.server.save_report", return_value="site_docs/digests/x.md"), \
          patch("agent_ai_news.server.rebuild_site_index") as mock_index:
-        response = client.post("/api/digest", json={"days": 1, "topics": ["AI"]})
+        response = client.post("/api/digest", json={"days": 1, "topics": ["AI", "Robotics"]})
         assert response.status_code == 200
         assert "report_path" in response.json()
         mock_index.assert_called_once()
+        query = mock_run.call_args.args[0]
+        assert query == "Compile an AI intelligence digest for the past day covering: AI, Robotics"
 
 
 def _site_docs_settings(monkeypatch, site_docs):

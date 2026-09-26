@@ -78,3 +78,15 @@ def test_rebuild_index_escapes_html_in_titles(tmp_path, monkeypatch):
     index = (site_docs / "index.md").read_text()
     assert "<img" not in index
     assert "&lt;img src=x onerror=alert(1)&gt;" in index
+
+
+def test_rebuild_index_placeholder_uses_same_header(tmp_path, monkeypatch):
+    site_docs = tmp_path / "site_docs"
+    monkeypatch.setattr(
+        "agent_ai_news.publishers.mkdocs_publisher.get_settings",
+        lambda: type("Dummy", (), {"site_docs_dir": str(site_docs)})(),
+    )
+    rebuild_site_index()
+    index = (site_docs / "index.md").read_text()
+    assert "| Date | Type | Title | Link |" in index
+    assert "No reports published yet" in index

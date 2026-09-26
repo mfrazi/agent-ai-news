@@ -39,9 +39,10 @@ def get_chat_model(
             "model": chosen_model,
             "api_key": api_key,
             "base_url": "https://openrouter.ai/api/v1",
+            # OpenRouter app attribution
             "default_headers": {
-                "HTTP-Referer": "https://github.com/langchain-ai/deepagents",
-                "X-Title": "AI Intelligence Agent",
+                "HTTP-Referer": "https://github.com/mfrazi/agent-ai-news",
+                "X-Title": "agent-ai-news",
             },
             "temperature": temperature,
             "timeout": settings.llm_timeout_seconds,
@@ -49,7 +50,7 @@ def get_chat_model(
         }
 
         # Resolve OpenRouter provider routing preferences
-        raw_providers = openrouter_providers or settings.openrouter_providers or settings.openrouter_provider
+        raw_providers = openrouter_providers or settings.openrouter_providers
         provider_order: List[str] = []
         if isinstance(raw_providers, str):
             provider_order = [p.strip() for p in raw_providers.split(",") if p.strip()]
@@ -76,7 +77,7 @@ def get_chat_model(
     elif active_provider in ("gemini", "google_genai", "google"):
         from langchain_google_genai import ChatGoogleGenerativeAI
 
-        chosen_model = model_name or settings.agent_model_name or "gemini-2.0-flash"
+        chosen_model = model_name or settings.agent_model_name or "gemini-3.6-flash"
         api_key = _require_api_key(settings.google_api_key, "gemini", "GOOGLE_API_KEY")
         kwargs = {
             "model": chosen_model,

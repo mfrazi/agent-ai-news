@@ -9,6 +9,7 @@ Welcome to the **AI Intelligence Portal**. This knowledge archive is continuousl
 | Date | Type | Title | Link |
 | :--- | :--- | :--- | :--- |
 | 2026-09-26 | `Research` | [Usecase of AI in the last month](research/2026-09-26-research-usecase-of-ai-in-the-last-month.md) | [Read Report](research/2026-09-26-research-usecase-of-ai-in-the-last-month.md) |
+| 2026-09-26 | `Research` | [Tools that I need to try that just released in the last month](research/2026-09-26-research-tools-that-i-need-to-try-that-just-released-in-the-last-mont.md) | [Read Report](research/2026-09-26-research-tools-that-i-need-to-try-that-just-released-in-the-last-mont.md) |
 | 2026-09-26 | `Research` | [Latest AI model in the last week](research/2026-09-26-research-latest-ai-model-in-the-last-week.md) | [Read Report](research/2026-09-26-research-latest-ai-model-in-the-last-week.md) |
 | 2026-09-26 | `Research` | [Emerging techniques in test-time compute and reasoning models](research/2026-09-26-research-emerging-techniques-in-test-time-compute-and-reasoning-model.md) | [Read Report](research/2026-09-26-research-emerging-techniques-in-test-time-compute-and-reasoning-model.md) |
 

@@ -8,7 +8,7 @@ import typer
 from langgraph.errors import GraphRecursionError
 from rich.console import Console
 from agent_ai_news.config import output_base_dir
-from agent_ai_news.core.orchestrator import run_research_query
+from agent_ai_news.core.orchestrator import DEFAULT_DIGEST_TOPIC, build_digest_query, run_research_query
 from agent_ai_news.llm import MissingCredentialsError
 from agent_ai_news.core.synthesizer import save_report
 from agent_ai_news.publishers.mkdocs_publisher import rebuild_site_index
@@ -74,7 +74,7 @@ def research(
 @app.command()
 def digest(
     days: int = typer.Option(1, "--days", "-d", min=1, help="Lookback window in days (e.g. 1 for daily, 7 for weekly)"),
-    topic: str = typer.Option("General AI, Frontier Models, Open Weights", "--topic", "-t", help="Topics of interest"),
+    topic: str = typer.Option(DEFAULT_DIGEST_TOPIC, "--topic", "-t", help="Topics of interest"),
     openrouter_provider: Optional[str] = typer.Option(
         None,
         "--openrouter-provider",
@@ -83,7 +83,7 @@ def digest(
     ),
 ):
     """Compile an automated AI intelligence briefing across web, lab RSS, and Hugging Face."""
-    query = f"Compile an AI intelligence digest for the past {days} days covering: {topic}"
+    query = build_digest_query(days, topic)
     console.print(f"[bold cyan]📰 Compiling {days}-day intelligence briefing...[/bold cyan]")
     report_content = _run_query(query, report_type="digest", openrouter_providers=openrouter_provider)
     saved_path = save_report(report_content, slug="daily-digest", report_type="digest")

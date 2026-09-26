@@ -55,10 +55,10 @@ def test_get_chat_model_openrouter_with_providers_env(monkeypatch):
 def test_get_chat_model_gemini(monkeypatch):
     monkeypatch.setenv("GOOGLE_API_KEY", "fake-gemini-key")
     with patch("langchain_google_genai.ChatGoogleGenerativeAI") as mock_chat:
-        get_chat_model(provider="gemini", model_name="gemini-2.0-flash")
+        get_chat_model(provider="gemini", model_name="gemini-3.6-flash")
         mock_chat.assert_called_once()
         kwargs = mock_chat.call_args.kwargs
-        assert kwargs.get("model") == "gemini-2.0-flash"
+        assert kwargs.get("model") == "gemini-3.6-flash"
         assert kwargs.get("google_api_key") == "fake-gemini-key"
 
 def test_get_chat_model_openai(monkeypatch):
@@ -96,3 +96,26 @@ def test_get_chat_model_unsupported():
 def test_get_chat_model_missing_key_names_env_var(provider, env_var):
     with pytest.raises(MissingCredentialsError, match=env_var):
         get_chat_model(provider=provider)
+
+
+def test_get_chat_model_openrouter_provider_singular_alias(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-dummy")
+    monkeypatch.setenv("OPENROUTER_PROVIDER", "Together")
+    with patch("langchain_openai.ChatOpenAI") as mock_chat:
+        get_chat_model(provider="openrouter")
+        assert mock_chat.call_args.kwargs["extra_body"] == {"provider": {"order": ["Together"]}}
+
+
+def test_provider_default_models(monkeypatch):
+    for var in ("OPENROUTER_API_KEY", "GOOGLE_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY"):
+        monkeypatch.setenv(var, "key")
+    expected = {
+        "openrouter": ("langchain_openai.ChatOpenAI", "model", "anthropic/claude-sonnet-5"),
+        "gemini": ("langchain_google_genai.ChatGoogleGenerativeAI", "model", "gemini-3.6-flash"),
+        "openai": ("langchain_openai.ChatOpenAI", "model", "gpt-4o"),
+        "anthropic": ("langchain_anthropic.ChatAnthropic", "model_name", "claude-sonnet-5"),
+    }
+    for provider, (target, kwarg, model) in expected.items():
+        with patch(target) as mock_chat:
+            get_chat_model(provider=provider)
+            assert mock_chat.call_args.kwargs[kwarg] == model, provider

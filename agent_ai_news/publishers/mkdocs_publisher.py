@@ -87,7 +87,7 @@ def rebuild_site_index() -> None:
         table_content = "| Date | Type | Title | Link |\n| :--- | :--- | :--- | :--- |\n" + "\n".join(rows)
     else:
         table_content = (
-            "| Date | Type | Topic / Title | Link |\n"
+            "| Date | Type | Title | Link |\n"
             "| :--- | :--- | :--- | :--- |\n"
             "| *No reports published yet. Run `python -m agent_ai_news.cli digest` to generate your first briefing.* | - | - | - |"
         )

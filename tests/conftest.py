@@ -1,9 +1,21 @@
 # tests/conftest.py
 import pytest
+from pydantic import AliasChoices
 from agent_ai_news.config import Settings, get_settings
 
-# Every variable Settings reads (plus GEMINI_API_KEY, an alias of GOOGLE_API_KEY)
-SETTINGS_ENV_VARS = [name.upper() for name in Settings.model_fields] + ["GEMINI_API_KEY"]
+
+def _settings_env_vars():
+    """Every environment variable Settings reads, including aliases such as GEMINI_API_KEY."""
+    names = set()
+    for field_name, field in Settings.model_fields.items():
+        if isinstance(field.validation_alias, AliasChoices):
+            names.update(str(choice).upper() for choice in field.validation_alias.choices)
+        else:
+            names.add(field_name.upper())
+    return sorted(names)
+
+
+SETTINGS_ENV_VARS = _settings_env_vars()
 
 
 @pytest.fixture(autouse=True)

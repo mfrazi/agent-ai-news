@@ -6,7 +6,7 @@ An autonomous research and intelligence agent powered by LangChain's **`deepagen
 
 ## 🌟 Key Features
 
-* **Lead Orchestrator (DeepAgent):** Leverages `deepagents`' native planning (`todo`), workspace isolation, and subagent delegation.
+* **Lead Orchestrator (DeepAgent):** Leverages `deepagents`' native planning (`write_todos`), workspace isolation, and subagent delegation.
 * **Specialized Subagents:**
   - **News & Web Scout:** Searches breaking AI releases and lab blogs via Tavily (with automatic DuckDuckGo fallback) and parsed AI lab RSS feeds (OpenAI, Google DeepMind, Hugging Face).
   - **Academic Paper Scout:** Queries Hugging Face daily papers and searches the web for research papers, technical breakdowns, and benchmark findings.
@@ -36,7 +36,7 @@ flowchart TD
 
     %% ORCHESTRATION & SCOUTS
     subgraph S3["3. DeepAgents Multi-Subagent Harness"]
-        ORCH["Lead Research Agent (agent_ai_news.core.orchestrator)\n- Built via deepagents.create_deep_agent\n- Planning (todo tool) & Workspace Memory"]
+        ORCH["Lead Research Agent (agent_ai_news.core.orchestrator)\n- Built via deepagents.create_deep_agent\n- Planning (write_todos tool) & Workspace Memory"]
         
         SCOUT_NEWS["News & Web Scout Subagent\n(agent_ai_news.core.scouts)\nIsolated Context"]
         SCOUT_PAPER["Academic Paper Scout Subagent\n(agent_ai_news.core.scouts)\nIsolated Context"]
@@ -128,12 +128,12 @@ cp .env.example .env
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
-| `AGENT_LLM_PROVIDER` | Preferred provider: `openrouter`, `gemini`, `openai`, `anthropic` | `openrouter` (auto-detected) |
-| `AGENT_MODEL_NAME` | Model ID (e.g. `anthropic/claude-sonnet-5`, `gemini-2.0-flash`, `gpt-4o`) | Provider default |
+| `AGENT_LLM_PROVIDER` | Preferred provider: `openrouter`, `gemini`, `openai`, `anthropic` | Auto-detected from the API keys set (OpenRouter → Gemini → OpenAI → Anthropic) |
+| `AGENT_MODEL_NAME` | Model ID (e.g. `anthropic/claude-sonnet-5`, `gemini-3.6-flash`, `gpt-4o`) | Provider default |
 | `OPENROUTER_API_KEY` | OpenRouter API Key (access Claude, DeepSeek, Llama, etc.) | Optional |
-| `OPENROUTER_PROVIDERS` | Preferred OpenRouter inference provider(s) (e.g. `Together,DeepInfra`) | Optional |
+| `OPENROUTER_PROVIDERS` | Preferred OpenRouter inference provider(s) (e.g. `Together,DeepInfra`); alias `OPENROUTER_PROVIDER` | Optional |
 | `OPENROUTER_ALLOW_FALLBACKS` | Allow OpenRouter fallbacks if preferred provider unavailable (`true`/`false`) | `true` |
-| `GOOGLE_API_KEY` | Google Gemini API Key | Optional |
+| `GOOGLE_API_KEY` | Google Gemini API Key; alias `GEMINI_API_KEY` | Optional |
 | `OPENAI_API_KEY` | OpenAI API Key | Optional |
 | `ANTHROPIC_API_KEY` | Anthropic Claude API Key | Optional |
 | `TAVILY_API_KEY` | Tavily Web Search API Key (auto-falls back to DuckDuckGo if unset) | Optional |
@@ -147,7 +147,12 @@ cp .env.example .env
 
 ## 💻 CLI Usage
 
-The package provides the `agent-ai-news` CLI entrypoint (or `python -m agent_ai_news.cli`):
+The package provides the `agent-ai-news` CLI entrypoint (or `python -m agent_ai_news.cli`).
+
+Each run logs every LLM and tool call, plus a "still running" line every 30 seconds. Global options go before the command: `-v` / `--verbose` adds debug logs (every HTTP request), `-q` / `--quiet` hides the progress log. `research` and `digest` also accept `--openrouter-provider "Together,DeepInfra"` to prefer specific OpenRouter inference providers for that run:
+```bash
+agent-ai-news -q digest --days 7 --openrouter-provider "Together,DeepInfra"
+```
 
 ### 1. Interactive On-Demand Research
 Run a deep-dive research query on any specific AI topic:
@@ -196,13 +201,13 @@ curl -X POST http://127.0.0.1:8000/api/research \
 ```
 
 * `GET /health`: Health verification endpoint (`{"status": "ok"}`); no API key needed.
-* `POST /api/research`: Trigger on-demand research (`query`: 3-500 characters):
+* `POST /api/research`: Trigger on-demand research (`query`: 3-500 characters; optional `openrouter_provider`, as in the CLI option):
   ```json
   {
     "query": "Recent multimodal vision-language models"
   }
   ```
-* `POST /api/digest`: Compile scheduled briefing (`days`: 1-365, up to 10 `topics` of at most 100 characters):
+* `POST /api/digest`: Compile scheduled briefing (`days`: 1-365, up to 10 `topics` of at most 100 characters; optional `openrouter_provider`):
   ```json
   {
     "days": 1,
@@ -210,9 +215,9 @@ curl -X POST http://127.0.0.1:8000/api/research \
   }
   ```
 * `GET /api/reports`: List all reports in `site_docs/research/` and `site_docs/digests/`.
-* `GET /api/reports/{filename}`: Download/view specific report markdown.
+* `GET /api/reports/{filename}`: Return one report's markdown as JSON (`filename`, `content`).
 
-Interactive Swagger documentation is available at `http://localhost:8000/docs`.
+Interactive Swagger documentation is available at `http://localhost:8000/docs` (click **Authorize** and enter the API key to try the `/api` endpoints).
 
 ---
 
@@ -226,10 +231,23 @@ This repository includes `.github/workflows/ai-digest.yml`, which runs completel
 1. Push your repository to GitHub.
 2. In your GitHub repository, go to **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions**.
 3. Add your API keys as Repository Secrets:
-   - `OPENROUTER_API_KEY` (or `GOOGLE_API_KEY` / `OPENAI_API_KEY`)
+   - `OPENROUTER_API_KEY` (or `GOOGLE_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`)
    - `TAVILY_API_KEY` (optional)
+   - `AGENT_LLM_PROVIDER` (optional; if unset, the provider is auto-detected from the API key secret)
 4. Go to **Settings** $\rightarrow$ **Pages** and set **Source** to `Deploy from a branch` (branch: `gh-pages` / root).
 5. The workflow automatically executes every morning at `08:00 UTC`, generates the new briefing, commits it to the repository, and publishes the static website to **GitHub Pages**. You can also trigger it manually from the **Actions** tab.
+
+#### Choosing the LLM Model (`AGENT_MODEL_NAME`)
+The workflow reads the model from the `AGENT_MODEL_NAME` repository variable. If the variable is not set, it defaults to empty and digests use the provider's default model (`anthropic/claude-sonnet-5` on OpenRouter). To use another model:
+
+1. Go to **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions** $\rightarrow$ **Variables** tab $\rightarrow$ **New repository variable**:
+   - Name: `AGENT_MODEL_NAME`
+   - Value: a model ID for your provider, e.g. `deepseek/deepseek-v4.1-flash` (OpenRouter IDs use the `vendor/model` form)
+
+   It is a variable rather than a secret: the model name is not sensitive, and secrets are masked as `***` in the logs.
+2. *(Optional)* To use a different model for a single manual run, go to **Actions** $\rightarrow$ **Daily AI Intelligence Briefing & Site Publish** $\rightarrow$ **Run workflow** and fill in the **model** field. Leave it blank to use the variable.
+
+The model is resolved in this order: `model` input $\rightarrow$ `AGENT_MODEL_NAME` variable $\rightarrow$ provider default. The model ID must match the provider in use: the `AGENT_LLM_PROVIDER` secret, or the provider auto-detected from your API key secret.
 
 ### Option B: Docker & Docker Compose
 To run the agent API server in a self-hosted container (it runs as a non-root user). Set `AGENT_API_KEY` in `.env` first; otherwise the key changes on every restart and is printed in the container logs:

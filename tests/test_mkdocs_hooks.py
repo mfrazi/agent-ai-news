@@ -60,5 +60,6 @@ def test_mkdocs_config_registers_hook():
     import yaml
     from pathlib import Path
 
-    config = yaml.safe_load(Path("mkdocs.yml").read_text(encoding="utf-8"))
+    mkdocs_yml = Path(__file__).resolve().parent.parent / "mkdocs.yml"  # independent of the working directory
+    config = yaml.safe_load(mkdocs_yml.read_text(encoding="utf-8"))
     assert "agent_ai_news/publishers/mkdocs_hooks.py" in config["hooks"]
