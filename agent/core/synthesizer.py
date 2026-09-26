@@ -102,6 +102,42 @@ def slugify(text: str) -> str:
     return re.sub(r"[-\s]+", "-", text)
 
 
+def normalize_to_report_markdown(
+    raw_content: str,
+    title: str = "AI Intelligence Report",
+    report_type: str = "research",
+    tags: Optional[List[str]] = None,
+    period: str = "Past 7 Days",
+    date_str: Optional[str] = None,
+) -> str:
+    """Ensure report content adheres to the standardized markdown schema with frontmatter."""
+    today = date_str or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    chosen_tags = tags or ["AI", "Research"]
+
+    # If already formatted with frontmatter, ensure basic consistency
+    if raw_content.startswith("---") and "---" in raw_content[3:]:
+        return raw_content
+
+    # If raw content lacks frontmatter or is unformatted text, normalize into ResearchReport schema
+    paragraphs = [p.strip() for p in raw_content.split("\n\n") if p.strip()]
+    exec_summary = []
+    if paragraphs:
+        first_p = paragraphs[0]
+        sentences = [s.strip() for s in first_p.split(".") if s.strip()]
+        exec_summary = sentences[:3] if sentences else [first_p]
+
+    report = ResearchReport(
+        title=title,
+        date=today,
+        report_type=report_type,
+        period=period,
+        tags=chosen_tags,
+        executive_summary=exec_summary or ["Automated research intelligence report."],
+        synthesis=raw_content,
+    )
+    return format_report_markdown(report)
+
+
 def save_report(
     report_md: str,
     slug: str = "report",

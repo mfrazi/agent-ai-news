@@ -1,7 +1,12 @@
 # tests/test_synthesizer.py
 import os
 from pathlib import Path
-from agent.core.synthesizer import ResearchReport, format_report_markdown, save_report
+from agent.core.synthesizer import (
+    ResearchReport,
+    format_report_markdown,
+    normalize_to_report_markdown,
+    save_report,
+)
 
 
 def test_format_and_save_report(tmp_path, monkeypatch):
@@ -51,3 +56,20 @@ def test_save_report_digest_naming(tmp_path, monkeypatch):
     file_path = save_report("# Daily AI Digest", slug="daily-digest", report_type="digest", date_str="2026-09-26")
     assert file_path.name == "2026-09-26-ai-digest.md"
     assert file_path.exists()
+
+
+def test_normalize_raw_content_to_report_markdown():
+    raw_llm_output = "Here are the findings: DeepSeek released R1 with reinforcement learning."
+    normalized = normalize_to_report_markdown(
+        raw_content=raw_llm_output,
+        title="Reasoning Models",
+        report_type="research",
+        tags=["Reasoning"],
+        date_str="2026-09-26",
+    )
+    assert normalized.startswith("---")
+    assert 'title: "Reasoning Models"' in normalized
+    assert "date: 2026-09-26" in normalized
+    assert "type: research" in normalized
+    assert "## Executive Summary" in normalized
+    assert "DeepSeek released R1" in normalized

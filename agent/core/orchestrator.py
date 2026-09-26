@@ -39,12 +39,16 @@ def create_lead_research_agent(model: Any = None):
     return agent_graph
 
 
-def run_research_query(query: str, model: Any = None) -> str:
+def run_research_query(query: str, model: Any = None, report_type: str = "research") -> str:
     """Execute a research query using the lead agent and return the resulting report content."""
     agent = create_lead_research_agent(model=model)
     result = agent.invoke({"messages": [{"role": "user", "content": query}]})
     messages = result.get("messages", [])
+    raw_content = "No report generated."
     if messages:
         last_message = messages[-1]
-        return getattr(last_message, "content", str(last_message))
-    return "No report generated."
+        raw_content = getattr(last_message, "content", str(last_message))
+
+    from agent.core.synthesizer import normalize_to_report_markdown
+    return normalize_to_report_markdown(raw_content, title=query, report_type=report_type)
+
